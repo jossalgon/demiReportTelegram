@@ -1,0 +1,6 @@
+[submodule "teamSpeakTelegram"]
+	path = teamSpeakTelegram
+	url = https://github.com/jossalgon/teamSpeakTelegram.git
+[submodule "reportTelegram"]
+	path = reportTelegram
+	url = https://github.com/jossalgon/reportTelegram.git
