@@ -17,9 +17,11 @@ Submodule | Description
   link = YOUR_GROUP_LINK
   group_id =  YOUR_GROUP_ID
   admin_id = THE_ADMIN_ID
+  ts_user = serveradmin (OR YOUR TS USERNAME AS ADMIN)
+  ts_pass = YOUR_TS_PASSWORD
   ```
 
-2. Change the "send_report" (reportBot.py) commands handler to usernames of your group.
+2. Change the "send_report" (demiReportBot.py) commands handler to usernames of your group.
     ```
     @bot.message_handler(
             commands=['Mark', 'Charlie', 'Alex'],
