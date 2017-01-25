@@ -1,6 +1,12 @@
 # DemiReportTelegram
 DemiReportTelegram started by the idea of a telegram report bot and ended with a mix of random funny tools.
 
+## Submodules
+Submodule | Description
+--------- | -----------
+[reportTelegram](https://github.com/jossalgon/reportTelegram) | ReportTelegram is a telegram bot that helps you to keep the group clean by a report system with kicks and ban times.
+[teamSpeakTelegram](https://github.com/jossalgon/teamSpeakTelegram) | TeamSpeakTelegram is a telegram bot that tells you who is connected to the teamspeak server to know when your friends are online.
+
 ## Installation
 1. Create a config.ini file with:
 

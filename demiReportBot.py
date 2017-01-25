@@ -15,6 +15,7 @@ from src.songs import Songs
 from src.utils import Utils
 from src.welcome import Welcome
 from reportTelegram.src.reports import Reports
+from teamSpeakTelegram.src.utils import Utils as Ts_utils
 
 welcome = Welcome()
 admin = Admin()
@@ -26,6 +27,7 @@ poles = Poles()
 reports = Reports()
 songs = Songs()
 utils = Utils()
+ts_utils = Ts_utils()
 
 bot = variables.bot
 admin_id = variables.admin_id
@@ -103,6 +105,10 @@ while True:
             utils.set_power(0)
             bot.send_message(group_id, 'Selu desactivó sus poderes')
 
+        # TS
+        @bot.message_handler(commands=['ts'], func=lambda msg: ts_utils.is_allow(msg.from_user.id))
+        def ts_stats(message):
+            bot.reply_to(message, ts_utils.ts_stats())
 
         # MENTIONS
         @bot.message_handler(commands=['troll'], func=lambda msg: msg.chat.id == admin_id)
@@ -336,6 +342,7 @@ while True:
 
         def main():
             try:
+                ts_utils.create_database()
                 for u in utils.get_userIds():
                     bot.unban_chat_member(group_id, u)
                 if not utils.temporizado:
