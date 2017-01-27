@@ -14,7 +14,7 @@ from src.poles import Poles
 from src.songs import Songs
 from src.utils import Utils
 from src.welcome import Welcome
-from src.reports import Reports
+from reportTelegram.src.reports import Reports
 from teamSpeakTelegram.src.utils import Utils as Ts_utils
 
 welcome = Welcome()

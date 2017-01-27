@@ -13,13 +13,16 @@ Submodule | Description
   ```
   [Telegram]
   token_id = YOUR_TELEGRAM_BOT_TOKEN
-  db_dir = data.db (OR YOUR DATABASE NAME)
   link = YOUR_GROUP_LINK
   group_id =  YOUR_GROUP_ID
   admin_id = THE_ADMIN_ID
+  
+  [TS]
   ts_host = YOUR_TS_HOST
   ts_user = serveradmin (OR YOUR TS USERNAME AS ADMIN)
   ts_pass = YOUR_TS_PASSWORD
+  
+  [Database]
   DB_HOST = YOUR_DB_HOST
   DB_USER = YOUR_DB_USER
   DB_PASS = YOUR_DB_PASS

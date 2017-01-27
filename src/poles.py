@@ -6,7 +6,7 @@ import pymysql
 import threading
 import time
 
-from src.reports import Reports
+from reportTelegram.src.reports import Reports
 
 import variables
 from src.utils import Utils
