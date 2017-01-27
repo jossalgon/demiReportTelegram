@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 
+import pymysql
 import re
-import sqlite3 as lite
 
 import variables
 from src.utils import Utils
@@ -11,23 +11,27 @@ utils = Utils()
 bot = variables.bot
 admin_id = variables.admin_id
 group_id = variables.group_id
-db_dir = variables.db_dir
+
+DB_HOST = variables.DB_HOST
+DB_USER = variables.DB_USER
+DB_PASS = variables.DB_PASS
+DB_NAME = variables.DB_NAME
 
 
 class Mentions:
     def set_troll(self, message):
-        con = lite.connect(db_dir)
+        con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
         try:
-            cur = con.cursor()
-            target = int(message.text[7::])
-            username = utils.get_name(target)
-            trolls = utils.get_trolls()
-            if target in trolls:
-                cur.execute('DELETE FROM Trolls WHERE UserId = ?', (target,))
-                bot.send_message(group_id, '❤️ %s eliminado de la lista de trolls' % username)
-            else:
-                cur.execute('INSERT INTO Trolls VALUES(?)', (target,))
-                bot.send_message(group_id, '💔 %s añadido a la lista de trolls' % username)
+            with con.cursor() as cur:
+                target = message.text[7::]
+                username = utils.get_name(target)
+                trolls = utils.get_trolls()
+                if target in trolls:
+                    cur.execute('DELETE FROM Trolls WHERE UserId = %s', (str(target),))
+                    bot.send_message(group_id, '❤️ %s eliminado de la lista de trolls' % username)
+                else:
+                    cur.execute('INSERT INTO Trolls VALUES(%s)', (str(target),))
+                    bot.send_message(group_id, '💔 %s añadido a la lista de trolls' % username)
         except Exception as exception:
             bot.send_message(admin_id, exception)
         finally:
@@ -50,16 +54,16 @@ class Mentions:
 
     def mention_toggle(self, message):
         user_id = message.from_user.id
-        con = lite.connect(db_dir)
+        con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
         try:
-            cur = con.cursor()
-            not_mention = utils.get_not_mention()
-            if user_id not in not_mention:
-                cur.execute('INSERT INTO SilentMention VALUES(?)', (user_id,))
-                bot.reply_to(message, '❎ Menciones desactivadas')
-            else:
-                cur.execute('DELETE FROM SilentMention WHERE UserId = ?', (user_id,))
-                bot.reply_to(message, '✅ Menciones activadas')
+            with con.cursor() as cur:
+                not_mention = utils.get_not_mention()
+                if user_id not in not_mention:
+                    cur.execute('INSERT INTO SilentMention VALUES(%s)', (str(user_id),))
+                    bot.reply_to(message, '❎ Menciones desactivadas')
+                else:
+                    cur.execute('DELETE FROM SilentMention WHERE UserId = %s', (str(user_id),))
+                    bot.reply_to(message, '✅ Menciones activadas')
         except Exception as exception:
             print(exception)
         finally:

@@ -14,7 +14,7 @@ from src.poles import Poles
 from src.songs import Songs
 from src.utils import Utils
 from src.welcome import Welcome
-from reportTelegram.src.reports import Reports
+from src.reports import Reports
 from teamSpeakTelegram.src.utils import Utils as Ts_utils
 
 welcome = Welcome()
@@ -343,6 +343,7 @@ while True:
         def main():
             try:
                 ts_utils.create_database()
+                utils.create_database()
                 for u in utils.get_userIds():
                     bot.unban_chat_member(group_id, u)
                 if not utils.temporizado:

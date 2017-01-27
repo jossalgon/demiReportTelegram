@@ -1,5 +1,5 @@
 import datetime
-import sqlite3 as lite
+import pymysql
 import threading
 import time
 import os
@@ -9,8 +9,11 @@ import variables
 bot = variables.bot
 ADMIN_ID = variables.admin_id
 GROUP_ID = variables.group_id
-DB_DIR = variables.db_dir
 
+DB_HOST = variables.DB_HOST
+DB_USER = variables.DB_USER
+DB_PASS = variables.DB_PASS
+DB_NAME = variables.DB_NAME
 
 class Utils:
     def __init__(self):
@@ -20,53 +23,61 @@ class Utils:
 
     def get_name(self, user_id):
         username = 'Anon'
-        con = lite.connect(DB_DIR)
+        con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
         try:
-            with con:
-                cur = con.cursor()
-                cur.execute('SELECT Name FROM Users WHERE UserId = ?', (user_id,))
+            with con.cursor() as cur:
+                cur.execute('SELECT Name FROM Users WHERE UserId = %s', (str(user_id),))
                 username = cur.fetchone()[0]
         except Exception as exception:
             bot.send_message(ADMIN_ID, exception)
-        return username
+        finally:
+            if con:
+                con.close()
+            return username
 
     def get_user_id(self, name):
         user_id = 0
-        con = lite.connect(DB_DIR)
+        con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
         try:
-            with con:
-                cur = con.cursor()
-                cur.execute('SELECT UserId FROM Users WHERE Name = ?', (name,))
+            with con.cursor() as cur:
+                cur.execute('SELECT UserId FROM Users WHERE Name = %s', (str(name),))
                 user_id = int(cur.fetchone()[0])
         except Exception as exception:
             bot.send_message(ADMIN_ID, exception)
-        return user_id
+        finally:
+            if con:
+                con.close()
+            return user_id
 
     def is_from_group(self, user_id):
         result = False
-        con = lite.connect(DB_DIR)
+        con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
         try:
-            with con:
-                cur = con.cursor()
-                cur.execute('SELECT EXISTS(SELECT 1 FROM Users WHERE UserId = ?)', (user_id,))
+            with con.cursor() as cur:
+                cur.execute('SELECT EXISTS(SELECT 1 FROM Users WHERE UserId = %s)', (str(user_id),))
                 result = bool(cur.fetchone()[0])
         except Exception as exception:
             bot.send_message(ADMIN_ID, exception)
-        return result
+        finally:
+            if con:
+                con.close()
+            return result
 
     def get_userIds(self):
-        userIds = []
-        con = lite.connect(DB_DIR)
+        user_ids = []
+        con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
         try:
-            with con:
-                cur = con.cursor()
+            with con.cursor() as cur:
                 cur.execute('SELECT UserId FROM Users')
                 rows = cur.fetchall()
                 for row in rows:
-                    userIds.append(row[0])
+                    user_ids.append(row[0])
         except Exception as exception:
             bot.send_message(ADMIN_ID, exception)
-        return userIds
+        finally:
+            if con:
+                con.close()
+            return user_ids
 
     def get_usernames(self):
         usernames = {}
@@ -114,38 +125,36 @@ class Utils:
         self.t2.start()
 
     def get_trolls(self):
-        con = lite.connect(DB_DIR)
+        con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
         trolls = []
         try:
-            cur = con.cursor()
-            cur.execute("SELECT * FROM Trolls")
-            rows = cur.fetchall()
-            for row in rows:
-                trolls.append(row[0])
-            return trolls
+            with con.cursor() as cur:
+                cur.execute("SELECT * FROM Trolls")
+                rows = cur.fetchall()
+                for row in rows:
+                    trolls.append(row[0])
         except Exception as exception:
             print(exception)
         finally:
             if con:
-                con.commit()
                 con.close()
+            return trolls
 
     def get_not_mention(self):
-        con = lite.connect(DB_DIR)
+        con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
         not_mentions = []
         try:
-            cur = con.cursor()
-            cur.execute("SELECT * FROM SilentMention")
-            rows = cur.fetchall()
-            for row in rows:
-                not_mentions.append(row[0])
-            return not_mentions
+            with con.cursor() as cur:
+                cur.execute("SELECT * FROM SilentMention")
+                rows = cur.fetchall()
+                for row in rows:
+                    not_mentions.append(row[0])
         except Exception as exception:
             print(exception)
         finally:
             if con:
-                con.commit()
                 con.close()
+            return not_mentions
 
     def change_group_photo(self):
         os.system("./../tg/bin/telegram-cli -W -e 'channel_set_photo channel#1060426760 data/photo.jpg'")
@@ -158,3 +167,42 @@ class Utils:
     def change_group_name(self, name):
         os.system("./../tg/bin/telegram-cli -W -e 'rename_channel channel#1060426760 %s'" % name)
         os.system("./../tg/bin/telegram-cli -W -e 'status_offline'")
+
+    def create_database(self):
+        con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+        try:
+            with con.cursor() as cur:
+                cur.execute(
+                    "CREATE TABLE IF NOT EXISTS `Usos` ( \
+                      `UserId` int(11) NOT NULL, \
+                      `Veces` int(11) NOT NULL \
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; \
+                    CREATE TABLE IF NOT EXISTS `Reports` ( \
+                      `Reported` int(11) NOT NULL, \
+                      `UserId` int(11) NOT NULL \
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; \
+                    CREATE TABLE IF NOT EXISTS `Ranking` ( \
+                      `UserId` int(11) NOT NULL, \
+                      `Points` int(11) NOT NULL \
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; \
+                    CREATE TABLE IF NOT EXISTS `Users` ( \
+                      `UserId` int(11) NOT NULL, \
+                      `Name` text NOT NULL \
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; \
+                    CREATE TABLE IF NOT EXISTS `SilentMention` ( \
+                      `UserId` int(11) NOT NULL \
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; \
+                    CREATE TABLE IF NOT EXISTS `Trolls` ( \
+                      `Points` int(11) NOT NULL \
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; \
+                    CREATE TABLE IF NOT EXISTS `GroupNames` ( \
+                      `groupName` text NOT NULL, \
+                      `position` int(11) NOT NULL \
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; \
+                    ")
+        except Exception as exception:
+            print(exception)
+        finally:
+            if con:
+                con.commit()
+                con.close()

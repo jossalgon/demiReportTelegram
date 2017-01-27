@@ -17,8 +17,13 @@ Submodule | Description
   link = YOUR_GROUP_LINK
   group_id =  YOUR_GROUP_ID
   admin_id = THE_ADMIN_ID
+  ts_host = YOUR_TS_HOST
   ts_user = serveradmin (OR YOUR TS USERNAME AS ADMIN)
   ts_pass = YOUR_TS_PASSWORD
+  DB_HOST = YOUR_DB_HOST
+  DB_USER = YOUR_DB_USER
+  DB_PASS = YOUR_DB_PASS
+  DB_NAME = YOUR_DB_NAME
   ```
 
 2. Change the "send_report" (demiReportBot.py) commands handler to usernames of your group.
