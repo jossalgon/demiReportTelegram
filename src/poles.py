@@ -119,7 +119,7 @@ class Poles:
         con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
         try:
             with con.cursor() as cur:
-                cur.execute('SELECT UserId, Points FROM Ranking GROUP BY UserId ORDER BY Points DESC LIMIT 10')
+                cur.execute('SELECT UserId, Points FROM Ranking GROUP BY UserId, Points ORDER BY Points DESC LIMIT 10')
                 rows = cur.fetchall()
                 top = '🏆 Ranking:\n*1º - %s (%d ptos)*\n' % (utils.get_name(rows[0][0]), rows[0][1])
                 for row, pos in zip(rows[1:], range(2, 11)):

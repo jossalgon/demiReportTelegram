@@ -260,7 +260,7 @@ while True:
             bot.reply_to(message, str(variables.poles))
 
 
-        @bot.message_handler(commands=['cleanpoleS'], func=lambda msg: msg.from_user.id == admin_id)
+        @bot.message_handler(commands=['cleanpoles'], func=lambda msg: msg.from_user.id == admin_id)
         def clean_poles(message):
             variables.poles = []
             bot.reply_to(message, str(variables.poles))
@@ -344,10 +344,10 @@ while True:
             try:
                 ts_utils.create_database()
                 utils.create_database()
-                for u in utils.get_userIds():
-                    bot.unban_chat_member(group_id, u)
                 if not utils.temporizado:
                     utils.run_timer()
+                for u in utils.get_userIds():
+                    bot.unban_chat_member(group_id, u)
             except Exception as exception:
                 bot.send_message(admin_id, 'Error: %s' % exception)
 
