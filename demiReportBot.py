@@ -66,7 +66,7 @@ while True:
         @bot.message_handler(
             commands=['selu', 'amador', 'raul', 'ale1', 'alf', 'punky', 'domingo', 'fernando', 'dolito', 'jorge',
                       'carlos', 'raulito'],
-            func=lambda msg: utils.is_from_group(msg.from_user.id) and msg.chat.id == group_id)
+            func=lambda msg: utils.is_from_group(msg.from_user.id) and int(msg.chat.id) == group_id)
         def send_report(message):
             user_id = message.from_user.id
             command = message.text.split('@')[0]
@@ -95,12 +95,12 @@ while True:
             welcome.send_bye_to_member(message)
 
         # ADMIN POWER
-        @bot.message_handler(commands=['sipower'], func=lambda msg: msg.from_user.id == admin_id)
+        @bot.message_handler(commands=['sipower'], func=lambda msg: int(msg.from_user.id) == admin_id)
         def power_on(message):
             utils.set_power(2)
             bot.send_message(group_id, 'Selu activó sus poderes')
         
-        @bot.message_handler(commands=['nopower'], func=lambda msg: msg.from_user.id == admin_id)
+        @bot.message_handler(commands=['nopower'], func=lambda msg: int(msg.from_user.id) == admin_id)
         def power_on(message):
             utils.set_power(0)
             bot.send_message(group_id, 'Selu desactivó sus poderes')
@@ -111,12 +111,12 @@ while True:
             bot.reply_to(message, ts_utils.ts_stats())
 
         # MENTIONS
-        @bot.message_handler(commands=['troll'], func=lambda msg: msg.chat.id == admin_id)
+        @bot.message_handler(commands=['troll'], func=lambda msg: int(msg.chat.id) == admin_id)
         def set_troll(message):
             mentions.set_troll(message)
 
 
-        @bot.message_handler(func=lambda msg: msg.chat.id == group_id and msg.entities is not None and msg.entities[
+        @bot.message_handler(func=lambda msg: int(msg.chat.id) == group_id and msg.entities is not None and msg.entities[
                                                                                                            0].type == 'mention' and msg.from_user.id not in utils.get_trolls())
         def mention_handler(message):
             mentions.mention_handler(message)
@@ -133,21 +133,21 @@ while True:
 
 
         @bot.message_handler(content_types=['audio', 'video', 'document', 'text', 'location', 'contact', 'sticker', 'photo'],
-                             func=lambda msg: msg.from_user.id == 8787392 and msg.chat.id == group_id and 7 < int(
+                             func=lambda msg: int(msg.from_user.id) == 8787392 and int(msg.chat.id) == group_id and 7 < int(
                                  time.strftime('%H')) < 14 and not variables.jorge_despierto)
         def jorge_despierto_handler(message):
             key_words.jorge_despierto_handler()
 
 
         @bot.message_handler(content_types=['audio', 'video', 'document', 'text', 'location', 'contact', 'sticker', 'photo'],
-                             func=lambda msg: msg.from_user.id == 8787392 and msg.chat.id == group_id and 14 <= int(
+                             func=lambda msg: int(msg.from_user.id) == 8787392 and int(msg.chat.id) == group_id and 14 <= int(
                                  time.strftime('%H')) < 21 and not variables.jorge_despierto)
         def jorge_buenosdias_handler(message):
             key_words.jorge_buenosdias_handler(message)
 
 
         @bot.message_handler(regexp='hipertextual.com|twitter.com\/Hipertextual',
-                             func=lambda msg: msg.chat.id == group_id)
+                             func=lambda msg: int(msg.chat.id) == group_id)
         def hipermierda_handler(message):
             key_words.hipermierda_handler(message)
 
@@ -174,19 +174,19 @@ while True:
 
         # POLES
         @bot.message_handler(regexp='^([Pp][Oo]+[Ll][Ee]+)',
-                             func=lambda msg: msg.chat.id == group_id and time.strftime('%H') == '00')
+                             func=lambda msg: int(msg.chat.id) == group_id and time.strftime('%H') == '00')
         def pole_handler(message):
             poles.pole_handler(message)
 
 
         @bot.message_handler(regexp='^([Ss][Uu]+[Bb][Pp][Oo]+[Ll][Ee]+)',
-                             func=lambda msg: msg.chat.id == group_id and time.strftime('%H') == '00')
+                             func=lambda msg: int(msg.chat.id) == group_id and time.strftime('%H') == '00')
         def subpole_handler(message):
             poles.subpole_handler(message)
 
 
         @bot.message_handler(regexp='^([Tt]ercer [Cc]omentario)',
-                             func=lambda msg: msg.chat.id == group_id and time.strftime('%H') == '00')
+                             func=lambda msg: int(msg.chat.id) == group_id and time.strftime('%H') == '00')
         def tercercomentario_handler(message):
             poles.tercercomentario_handler(message)
 
@@ -208,7 +208,7 @@ while True:
 
         @bot.message_handler(content_types=['photo'],
                              func=lambda msg: msg.chat.type == 'private' and variables.poles
-                                              and msg.from_user.id == variables.poles[0]
+                                              and int(msg.from_user.id) == variables.poles[0]
                                               and datetime.datetime.today().weekday() == 5
                                               and photo_ok)
         def pole_reward(message):
@@ -217,56 +217,56 @@ while True:
 
         @bot.message_handler(func=lambda msg: msg.chat.type == 'private' and msg.text[0] != '/'
                                               and variables.poles
-                                              and (msg.from_user.id == variables.poles[1]
-                                                   or msg.from_user.id == variables.poles[2])
+                                              and (int(msg.from_user.id) == variables.poles[1]
+                                                   or int(msg.from_user.id) == variables.poles[2])
                                               and datetime.datetime.today().weekday() == 5)
         def group_name_reward(message):
             poles.change_group_name_bot(message)
 
         # +18
-        @bot.message_handler(commands=['no18'], func=lambda msg: msg.from_user.id == admin_id)
+        @bot.message_handler(commands=['no18'], func=lambda msg: int(msg.from_user.id) == admin_id)
         def stop_18(message):
             adults.stop_18(message)
 
 
-        @bot.message_handler(commands=['si18'], func=lambda msg: msg.from_user.id == admin_id)
+        @bot.message_handler(commands=['si18'], func=lambda msg: int(msg.from_user.id) == admin_id)
         def start_18(message):
             adults.start_18(message)
 
 
         @bot.message_handler(commands=['butts'],
-                             func=lambda msg: (utils.is_from_group(msg.from_user.id) or msg.from_user.id == 302903437) and variables.porn)
+                             func=lambda msg: (utils.is_from_group(msg.from_user.id) or int(msg.from_user.id) == 302903437) and variables.porn)
         def send_butts(message, attempt=0):
             adults.send_butts(message, attempt)
 
 
         @bot.message_handler(commands=['boobs'],
-                             func=lambda msg: (utils.is_from_group(msg.from_user.id) or msg.from_user.id == 302903437) and variables.porn)
+                             func=lambda msg: (utils.is_from_group(msg.from_user.id) or int(msg.from_user.id) == 302903437) and variables.porn)
         def send_boobs(message, attempt=0):
             adults.send_boobs(message, attempt)
 
         # ADMIN UTILS
-        @bot.message_handler(commands=['addpole'], func=lambda msg: msg.from_user.id == admin_id)
+        @bot.message_handler(commands=['addpole'], func=lambda msg: int(msg.from_user.id) == admin_id)
         def add_pole(message):
             text = message.text[9::]
             variables.poles = [int(text), 0, 0]
             bot.reply_to(message, str(variables.poles))
 
 
-        @bot.message_handler(commands=['addsubpole'], func=lambda msg: msg.from_user.id == admin_id)
+        @bot.message_handler(commands=['addsubpole'], func=lambda msg: int(msg.from_user.id) == admin_id)
         def add_subpole(message):
             text = message.text[12::]
             variables.poles = [0, int(text), 0]
             bot.reply_to(message, str(variables.poles))
 
 
-        @bot.message_handler(commands=['cleanpoles'], func=lambda msg: msg.from_user.id == admin_id)
+        @bot.message_handler(commands=['cleanpoles'], func=lambda msg: int(msg.from_user.id) == admin_id)
         def clean_poles(message):
             variables.poles = []
             bot.reply_to(message, str(variables.poles))
 
 
-        @bot.message_handler(commands=['photo'], func=lambda msg: msg.from_user.id == admin_id)
+        @bot.message_handler(commands=['photo'], func=lambda msg: int(msg.from_user.id) == admin_id)
         def change_photo(message):
             global photo_ok
             if photo_ok:
@@ -276,7 +276,7 @@ while True:
             bot.reply_to(message, photo_ok)
 
 
-        @bot.message_handler(commands=['setjorge'], func=lambda msg: msg.from_user.id == admin_id)
+        @bot.message_handler(commands=['setjorge'], func=lambda msg: int(msg.from_user.id) == admin_id)
         def set_jorge_by_bot(message):
             if variables.jorge_despierto:
                 variables.jorge_despierto = False
@@ -284,33 +284,33 @@ while True:
                 variables.jorge_despierto = True
 
 
-        @bot.message_handler(commands=['time'], func=lambda msg: msg.from_user.id == admin_id)
+        @bot.message_handler(commands=['time'], func=lambda msg: int(msg.from_user.id) == admin_id)
         def set_ban_time_by_bot(message):
             admin.set_ban_time_by_bot(message)
 
 
-        @bot.message_handler(commands=['reportes'], func=lambda msg: msg.from_user.id == admin_id)
+        @bot.message_handler(commands=['reportes'], func=lambda msg: int(msg.from_user.id) == admin_id)
         def set_reportes(message):
             admin.set_num_reports_by_bot(message)
 
 
-        @bot.message_handler(commands=['berserker'], func=lambda msg: msg.from_user.id == admin_id)
+        @bot.message_handler(commands=['berserker'], func=lambda msg: int(msg.from_user.id) == admin_id)
         def berserker_on(message):
             admin.berserker_on(message)
 
 
-        @bot.message_handler(commands=['gett'], func=lambda msg: msg.from_user.id == admin_id)
+        @bot.message_handler(commands=['gett'], func=lambda msg: int(msg.from_user.id) == admin_id)
         def get_t(message):
             bot.send_message(admin_id, '%s\n%s' % (utils.t, utils.t2))
 
 
         # OTHER COMMANDS
-        @bot.message_handler(commands=['purge'], func=lambda msg: msg.chat.id == group_id)
+        @bot.message_handler(commands=['purge'], func=lambda msg: int(msg.from_user.id) == group_id)
         def purger(message):
             general.purger(message)
 
 
-        @bot.message_handler(commands=['talk'], func=lambda msg: msg.chat.id == admin_id)
+        @bot.message_handler(commands=['talk'], func=lambda msg: int(msg.from_user.id) == admin_id)
         def talk(message):
             general.talk(message)
 

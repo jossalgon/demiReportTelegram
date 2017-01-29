@@ -108,7 +108,7 @@ class Utils:
                     bot.edit_message_text(text, chat_id=GROUP_ID, message_id=msg.message_id, parse_mode='Markdown')
                 time.sleep(0.5)
         except Exception as exception:
-            bot.send_message(GROUP_ID, exception)
+            bot.send_message(ADMIN_ID, exception)
 
     def run_timer(self):
         self.temporizado = True
