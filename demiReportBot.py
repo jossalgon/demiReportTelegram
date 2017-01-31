@@ -305,7 +305,7 @@ while True:
 
 
         # OTHER COMMANDS
-        @bot.message_handler(commands=['purge'], func=lambda msg: int(msg.from_user.id) == group_id)
+        @bot.message_handler(commands=['purge'], func=lambda msg: utils.is_from_group(msg.from_user.id))
         def purger(message):
             general.purger(message)
 
