@@ -1,3 +1,4 @@
 ts3
-pyTelegramBotAPI
 pymysql
+reportTelegram
+teamSpeakTelegram

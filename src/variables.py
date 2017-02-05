@@ -1,11 +1,9 @@
-import telebot
 import configparser
 
 config = configparser.ConfigParser()
 config.read('config.ini')
 
 api_token = config['Telegram']['token']
-bot = telebot.TeleBot(api_token)
 
 link = config['Telegram']['link']
 group_id = int(config['Telegram']['group_id'])
