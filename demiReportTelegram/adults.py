@@ -1,7 +1,7 @@
 import requests
 import logging
 
-import variables
+from demiReportTelegram import variables
 
 admin_id = variables.admin_id
 group_id = variables.group_id

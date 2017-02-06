@@ -1,8 +1,10 @@
 # -*- encoding: utf-8 -*-
-
+import os
 import random
 
-import variables
+import sys
+
+from demiReportTelegram import variables
 
 admin_id = variables.admin_id
 group_id = variables.group_id
@@ -21,26 +23,37 @@ def send_demigrante(bot, update):
     message = update.message
     chat_id = message.chat.id
     sel = random.randint(1, 22)
-    audio = open('data/music/%s.ogg' % str(sel), 'rb')
+    resource = 'data/music/%s.ogg' % str(sel), 'rb'
+    audio = open(os.path.join(os.path.dirname(sys.modules['demiReportTelegram'].__file__), resource), 'rb')
     bot.send_audio(chat_id, audio)
+    audio.close()
 
 
 def send_shh(bot, update):
-    chat_id = update.message.chat.id
-    audio = open('data/shh.ogg', 'rb')
+    message = update.message
+    chat_id = message.chat.id
+    resource = 'data/voices/shh.ogg'
+    audio = open(os.path.join(os.path.dirname(sys.modules['demiReportTelegram'].__file__), resource), 'rb')
     bot.send_audio(chat_id, audio)
+    audio.close()
 
 
 def send_alerta(bot, update):
-    chat_id = update.message.chat.id
-    audio = open('data/alerta.ogg', 'rb')
+    message = update.message
+    chat_id = message.chat.id
+    resource = 'data/voices/alerta.ogg'
+    audio = open(os.path.join(os.path.dirname(sys.modules['demiReportTelegram'].__file__), resource), 'rb')
     bot.send_audio(chat_id, audio)
+    audio.close()
 
 
 def send_tq(bot, update):
-    chat_id = update.message.chat.id
-    audio = open('data/tq.ogg', 'rb')
+    message = update.message
+    chat_id = message.chat.id
+    resource = 'data/voices/tq.ogg'
+    audio = open(os.path.join(os.path.dirname(sys.modules['demiReportTelegram'].__file__), resource), 'rb')
     bot.send_audio(chat_id, audio)
+    audio.close()
 
 
 def send_disculpa(bot, update):

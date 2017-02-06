@@ -1,10 +1,11 @@
 # -*- encoding: utf-8 -*-
 
 import configparser
+import io
 import logging
 import time
-from collections import deque
 from datetime import datetime
+import pkgutil
 
 from reportTelegram import reportBot, utils
 from teamSpeakTelegram import teamspeak
@@ -13,42 +14,22 @@ from telegram import MessageEntity, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, RegexHandler, InlineQueryHandler, \
     ChosenInlineResultHandler, CommandFilterHandler
 
-import variables
-from demiTools import songs, adults, general, mentions, poles
-from demiTools import utils as demi_utils
-
+from demiReportTelegram import adults, general, mentions, poles, variables, songs
+from demiReportTelegram import utils as demi_utils
 
 admin_id = variables.admin_id
 group_id = variables.group_id
 photo_ok = True
-
-# BOT
 
 config = configparser.ConfigParser()
 config.read('config.ini')
 
 TG_TOKEN = config['Telegram']['token']
 
-msg_queue = deque([], 15)
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 logger = logging.getLogger(__name__)
-
-
-def is_flooder(user_id):
-    return msg_queue.count(user_id) >= msg_queue.maxlen / 3
-
-
-def listener(messages):
-    global msg_queue
-    for message in messages:
-        msg_text = message.text
-        from_id = message.from_user.id
-        if msg_text is None:
-            break
-        elif not is_flooder(from_id) and message.text.startswith('/'):
-            msg_queue.append(from_id)
 
 
 def start(bot, update):
@@ -61,7 +42,7 @@ def welcome_or_bye_to_member(bot, update):
     try:
         if message.new_chat_member:
             user_id = message.new_chat_member.id
-            sti = open('data/stickers/nancy_ok.webp', 'rb')
+            sti = io.BufferedReader(io.BytesIO(pkgutil.get_data('demiReportTelegram', 'data/stickers/nancy_ok.webp')))
             bot.send_sticker(variables.group_id, sti)
             sti.close()
             if not utils.is_from_group(user_id):
@@ -69,8 +50,8 @@ def welcome_or_bye_to_member(bot, update):
                 bot.send_message(variables.admin_id, user_id)
         elif message.left_chat_member:
             user_id = message.left_chat_member.id
-            sti = open('data/stickers/nancy.webp', 'rb')
-            sti2 = open('data/stickers/nancy.webp', 'rb')
+            sti = io.BufferedReader(io.BytesIO(pkgutil.get_data('demiReportTelegram', 'data/stickers/nancy.webp')))
+            sti2 = io.BufferedReader(io.BytesIO(pkgutil.get_data('demiReportTelegram', 'data/stickers/nancy.webp')))
             bot.send_sticker(variables.group_id, sti)
             bot.send_sticker(user_id, sti2)
             sti.close()
@@ -137,15 +118,28 @@ def raulito_oro(bot, update):
 
 
 # SONGS
+def flooder(user_data, job_queue):
+    if 'flood' in user_data and user_data['flood'] > 0:
+        user_data['flood'] -= 1
+        if user_data['flood'] == 0:
+            job_queue.run_once(clear_flooder, 300, context=user_data)
+    elif 'flood' not in user_data:
+        user_data['flood'] = 5
+    return user_data['flood'] == 0
+
+
+def clear_flooder(bot, job):
+    user_data = job.context
+    user_data['flood'] = 5
+
+
 def inline_query(bot, update):
     songs.inline_query(bot, update)
 
 
-def inline_result(bot, update):
-    global msg_queue
+def inline_result(bot, update, user_data, job_queue):
     from_id = update.chosen_inline_result.from_user.id
-    if utils.is_from_group(from_id) and not is_flooder(from_id):
-        msg_queue.append(from_id)
+    if utils.is_from_group(from_id) and not flooder(user_data, job_queue):
         songs.inline_result(bot, update)
 
 
@@ -215,7 +209,6 @@ def add_pole(bot, update, args):
     bot.send_message(message.chat_id, res, reply_to_message_id=message.message_id)
 
 
-# @bot.message_handler(commands=['addsubpole'], func=lambda msg: int(msg.from_user.id) == admin_id)
 def add_subpole(bot, update, args):
     message = update.message
     target = args[0]
@@ -240,6 +233,11 @@ def talk(bot, update, args):
         bot.send_message(group_id, text)
 
 
+def gett(bot, update, job_queue):
+    message = update.message
+    bot.sendMessage(chat_id=message.chat_id, text=str(job_queue.queue.queue), reply_to_message_id=message.message_id)
+
+
 def log_error(bot, update, error):
     logger.warning('Update "%s" caused error "%s"' % (update, error))
 
@@ -252,12 +250,11 @@ def main():
     utils_teamspeak.create_database()
     utils.create_database()
     demi_utils.create_database()
-    timer = demi_utils.Timer()
-    if not timer.temporizado:
-        timer.run_timer()
 
     updater = Updater(token=TG_TOKEN)
     dp = updater.dispatcher
+
+    demi_utils.pole_timer(updater.job_queue)
 
     dp.add_handler(CommandHandler('start', start))
     dp.add_handler(CommandFilterHandler('stats', filter_is_from_group, reportBot.stats))
@@ -276,7 +273,7 @@ def main():
     dp.add_handler(RegexHandler(r'(?i).*hipertextual.com|.*twitter\.com\/Hipertextual', hipermierda))
     dp.add_handler(RegexHandler(r'(?i)(?=.*es)(?=.*raulito)(?=.*oro)?', raulito_oro))
     dp.add_handler(InlineQueryHandler(inline_query))
-    dp.add_handler(ChosenInlineResultHandler(inline_result))
+    dp.add_handler(ChosenInlineResultHandler(inline_result, pass_user_data=True, pass_job_queue=True))
     dp.add_handler(RegexHandler(r'(?i)po+le+.*', pole_handler))
     dp.add_handler(RegexHandler(r'(?i)su+bpo+le+.*', subpole_handler))
     dp.add_handler(RegexHandler(r'(?i)tercer comentario+.*', tercercomentario_handler))
@@ -302,6 +299,7 @@ def main():
     dp.add_handler(CommandFilterHandler('alerta', filter_is_from_group, general.send_alerta))
     dp.add_handler(CommandFilterHandler('tq', filter_is_from_group, general.send_tq))
     dp.add_handler(CommandFilterHandler('disculpa', filter_is_from_group, general.send_disculpa))
+    dp.add_handler(CommandHandler("gett", gett, pass_job_queue=True))
 
     for name in utils.get_names():
         dp.add_handler(CommandFilterHandler(name.lower(), lambda msg: msg.chat_id == group_id, reportBot.report))

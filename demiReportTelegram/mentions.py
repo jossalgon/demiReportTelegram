@@ -4,10 +4,10 @@ import logging
 import re
 
 import pymysql
-
-import variables
 from reportTelegram import utils
-from demiTools import utils as demi_utils
+
+from demiReportTelegram import utils as demi_utils
+from demiReportTelegram import variables
 
 admin_id = variables.admin_id
 group_id = variables.group_id
@@ -48,16 +48,16 @@ def set_troll(target):
 
 def mention_handler(bot, message):
     usernames = utils.get_usernames(bot)
-    mentions = re.findall(r'\@\w+', message.text)
+    mentions = re.findall(r'@\w+', message.text)
     user_ids = utils.get_userIds()
     not_mention = demi_utils.get_not_mention()
     for mention in mentions:
         if mention in usernames:
             bot.forward_message(usernames[mention], group_id, message.message_id)
-        elif mention == '@todos':
-            for user_id in user_ids:
-                if user_id not in not_mention:
-                    bot.forward_message(user_id, group_id, message.message_id)
+    if bool(re.match(r'(?i).*@todos.*', message.text)):
+        for user_id in user_ids:
+            if user_id not in not_mention:
+                bot.forward_message(user_id, group_id, message.message_id)
 
 
 def mention_toggle(user_id):

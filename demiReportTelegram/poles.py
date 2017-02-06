@@ -1,17 +1,17 @@
 # -*- encoding: utf-8 -*-
 
 import datetime
+import logging
 import random
 import threading
 import time
-import logging
 
 import pymysql
 from reportTelegram import reports
-
-import variables
 from reportTelegram import utils
-from demiTools import utils as demi_utils
+
+from demiReportTelegram import utils as demi_utils
+from demiReportTelegram import variables
 
 admin_id = variables.admin_id
 group_id = variables.group_id

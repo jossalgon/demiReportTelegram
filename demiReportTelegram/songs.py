@@ -1,10 +1,14 @@
 # -*- encoding: utf-8 -*-
+import io
+import os
+import pkgutil
 
+import sys
 from telegram import InlineQueryResultArticle, InputTextMessageContent
 
 from reportTelegram import utils
 
-import variables
+from demiReportTelegram import variables
 
 
 admin_id = variables.admin_id
@@ -94,8 +98,10 @@ def inline_result(bot, update):
     result = update.chosen_inline_result
     res = int(result.result_id)
     sel = res
-    audio = open('data/music/%s.ogg' % str(sel), 'rb')
+    resource = 'data/music/%s.ogg' % str(sel)
+    audio = open(os.path.join(os.path.dirname(sys.modules['demiReportTelegram'].__file__), resource), 'rb')
     if sel == 17:
         bot.send_document(group_id, 'http://i.imgur.com/vABnMpR.gif')
     comentario = 'Sent by %s' % utils.get_name(result.from_user.id)
     bot.send_audio(group_id, audio, caption=comentario)
+    audio.close()

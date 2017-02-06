@@ -1,0 +1,18 @@
+from setuptools import setup
+
+setup(name='demiReportTelegram',
+      version='0.1',
+      description='A random funny telegram bot.',
+      url='https://github.com/jossalgon/demiReportTelegram',
+      author='Jose Luis Salazar Gonzalez',
+      author_email='joseluis25sg@gmail.com',
+      packages=['demiReportTelegram'],
+      package_data={'demiReportTelegram': ['data/music/*', 'data/stickers/*', 'data/voices/*']},
+      install_requires=[
+          "ts3",
+          "pymysql",
+          "reportTelegram",
+          "teamSpeakTelegram"
+      ],
+
+      zip_safe=False)

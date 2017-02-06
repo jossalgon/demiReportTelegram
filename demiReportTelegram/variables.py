@@ -1,4 +1,5 @@
 import configparser
+from collections import deque
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -19,10 +20,10 @@ ban_time = 300
 nuke = 30
 perros = 20
 porn = True
-berserker = False
-jorge_despierto = True
 poles = []
 new_members = []
+
+msg_queue = deque([], 15)
 
 
 def add_new_member(new_member):
@@ -36,6 +37,6 @@ def add_member_to_poles(new_member, pos):
         poles.append(new_member)
 
 
-def clean_poles():
+def clean_poles(bot, job):
     global poles
     poles = []
