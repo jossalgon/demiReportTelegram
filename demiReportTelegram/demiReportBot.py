@@ -299,7 +299,9 @@ def main():
     dp.add_handler(CommandFilterHandler('alerta', filter_is_from_group, general.send_alerta))
     dp.add_handler(CommandFilterHandler('tq', filter_is_from_group, general.send_tq))
     dp.add_handler(CommandFilterHandler('disculpa', filter_is_from_group, general.send_disculpa))
-    dp.add_handler(CommandHandler("gett", gett, pass_job_queue=True))
+    dp.add_handler(CommandFilterHandler('locura', filter_is_from_group, general.send_locura))
+    dp.add_handler(CommandFilterHandler('mecagoenlamadrequemepario', filter_is_from_group, general.send_gritopokemon))
+    dp.add_handler(CommandHandler('gett', gett, pass_job_queue=True))
 
     for name in utils.get_names():
         dp.add_handler(CommandFilterHandler(name.lower(), lambda msg: msg.chat_id == group_id, reportBot.report))

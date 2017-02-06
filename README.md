@@ -75,3 +75,5 @@ Command | Uses
 /butts | Send a butt image
 /boobs | Send a boobs image
 /purge | Ban not allowed users
+/locura | Send "Pero que locura es esta POR DIOS!!"
+/mecagoenlamadrequemepario | Send "Me cago en la madre que me pario"

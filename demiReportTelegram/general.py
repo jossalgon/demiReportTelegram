@@ -60,3 +60,22 @@ def send_disculpa(bot, update):
     chat_id = update.message.chat_id
     bot.send_message(chat_id, 'Disculpa por equivocarme, pero no soy perfecto, soy humano y cometo errores; '
                               'lo siento, pero la vida no viene con instrucciones.')
+
+
+def send_locura(bot, update):
+    message = update.message
+    chat_id = message.chat.id
+    resource = 'data/voices/locura.ogg'
+    audio = open(os.path.join(os.path.dirname(sys.modules['demiReportTelegram'].__file__), resource), 'rb')
+    bot.send_document(chat_id, 'http://imgur.com/fk6eHuB.gif')
+    bot.send_audio(chat_id, audio)
+    audio.close()
+
+def send_gritopokemon(bot, update):
+    message = update.message
+    chat_id = message.chat.id
+    resource = 'data/voices/gritopokemon.ogg'
+    audio = open(os.path.join(os.path.dirname(sys.modules['demiReportTelegram'].__file__), resource), 'rb')
+    bot.send_audio(chat_id, audio)
+    audio.close()
+
