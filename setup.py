@@ -9,6 +9,7 @@ setup(name='demiReportTelegram',
       packages=['demiReportTelegram'],
       package_data={'demiReportTelegram': ['data/music/*', 'data/stickers/*', 'data/voices/*']},
       install_requires=[
+          "requests",
           "ts3",
           "pymysql",
           "reportTelegram",

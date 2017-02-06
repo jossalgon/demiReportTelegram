@@ -1,3 +1,4 @@
+requests
 ts3
 pymysql
 reportTelegram
