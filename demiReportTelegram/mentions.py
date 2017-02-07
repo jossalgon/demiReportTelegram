@@ -47,13 +47,15 @@ def set_troll(target):
 
 
 def mention_handler(bot, message):
-    usernames = utils.get_usernames(bot)
+    usernames = demi_utils.get_usernames(bot)
     mentions = re.findall(r'@\w+', message.text)
-    user_ids = utils.get_userIds()
+    user_ids = demi_utils.get_user_ids()
     not_mention = demi_utils.get_not_mention()
     for mention in mentions:
+        mention = mention.lower()
         if mention in usernames:
-            bot.forward_message(usernames[mention], group_id, message.message_id)
+            if usernames[mention] not in not_mention:
+                bot.forward_message(usernames[mention], group_id, message.message_id)
     if bool(re.match(r'(?i).*@todos.*', message.text)):
         for user_id in user_ids:
             if user_id not in not_mention:
