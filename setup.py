@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='demiReportTelegram',
-      version='0.1',
+      version='0.1.1',
       description='A random funny telegram bot.',
       url='https://github.com/jossalgon/demiReportTelegram',
       author='Jose Luis Salazar Gonzalez',

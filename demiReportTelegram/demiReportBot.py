@@ -26,7 +26,6 @@ config.read('config.ini')
 
 TG_TOKEN = config['Telegram']['token']
 
-
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 logger = logging.getLogger(__name__)
@@ -238,6 +237,10 @@ def filter_is_from_group(msg):
     return utils.is_from_group(msg.from_user.id)
 
 
+def not_forwarded(msg):
+    return not bool(msg.forward_date)
+
+
 def main():
     utils_teamspeak.create_database()
     utils.create_database()
@@ -260,7 +263,8 @@ def main():
     dp.add_handler(CommandFilterHandler('nopower', lambda msg: msg.from_user.id == admin_id, power_off))
     dp.add_handler(CommandFilterHandler('ts', filter_is_from_group, teamspeak.ts_stats))
     dp.add_handler(CommandFilterHandler('troll', lambda msg: msg.from_user.id == admin_id, set_troll, pass_args=True))
-    dp.add_handler(MessageHandler(Filters.entity(MessageEntity.MENTION), mention_handler))
+    # dp.add_handler(MessageHandler(Filters.entity(MessageEntity.MENTION) and not Filters.forwarded, mention_handler))
+    dp.add_handler(MessageHandler(Filters.entity(MessageEntity.MENTION) & not_forwarded, mention_handler))
     dp.add_handler(CommandFilterHandler('mention', filter_is_from_group, mention_toggle))
     dp.add_handler(RegexHandler(r'(?i).*hipertextual.com|.*twitter\.com\/Hipertextual', hipermierda))
     dp.add_handler(RegexHandler(r'(?i)(?=.*es)(?=.*raulito)(?=.*oro)?', raulito_oro))
