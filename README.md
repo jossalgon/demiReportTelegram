@@ -23,6 +23,7 @@ Submodule | Description
   link = YOUR_GROUP_LINK
   group_id =  YOUR_GROUP_ID
   admin_id = THE_ADMIN_ID
+  sticker = banned
   
   [TS]
   ts_host = YOUR_TS_HOST

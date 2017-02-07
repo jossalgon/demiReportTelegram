@@ -37,7 +37,7 @@ def start(bot, update):
     bot.sendMessage(chat_id=message.chat_id, text='F*CK U', reply_to_message_id=message.message_id)
 
 
-def welcome_or_bye_to_member(bot, update):
+def welcome_to_member(bot, update):
     message = update.message
     try:
         if message.new_chat_member:
@@ -48,16 +48,8 @@ def welcome_or_bye_to_member(bot, update):
             if not utils.is_from_group(user_id):
                 variables.add_new_member(user_id)
                 bot.send_message(variables.admin_id, user_id)
-        elif message.left_chat_member:
-            user_id = message.left_chat_member.id
-            sti = io.BufferedReader(io.BytesIO(pkgutil.get_data('demiReportTelegram', 'data/stickers/nancy.webp')))
-            sti2 = io.BufferedReader(io.BytesIO(pkgutil.get_data('demiReportTelegram', 'data/stickers/nancy.webp')))
-            bot.send_sticker(variables.group_id, sti)
-            bot.send_sticker(user_id, sti2)
-            sti.close()
-            sti2.close()
     except:
-        logger.error('Fatal error in welcome_or_bye_to_member', exc_info=True)
+        logger.error('Fatal error in welcome_to_member', exc_info=True)
 
 
 # ADMIN POWER
@@ -263,7 +255,7 @@ def main():
     dp.add_handler(CommandFilterHandler('reports', filter_is_from_group, reportBot.set_reports, pass_args=True))
     dp.add_handler(CommandFilterHandler('bantime', lambda msg: msg.from_user.id == admin_id,
                                         reportBot.set_ban_time, pass_args=True))
-    dp.add_handler(MessageHandler(Filters.status_update, welcome_or_bye_to_member))
+    dp.add_handler(MessageHandler(Filters.status_update, welcome_to_member))
     dp.add_handler(CommandFilterHandler('sipower', lambda msg: msg.from_user.id == admin_id, power_on))
     dp.add_handler(CommandFilterHandler('nopower', lambda msg: msg.from_user.id == admin_id, power_off))
     dp.add_handler(CommandFilterHandler('ts', filter_is_from_group, teamspeak.ts_stats))
