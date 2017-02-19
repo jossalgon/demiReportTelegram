@@ -2,6 +2,8 @@
 
 import datetime
 import logging
+import os
+import sys
 import random
 import threading
 import time
@@ -141,7 +143,8 @@ def send_nuke(bot, update):
             if user_points >= nuke:
                 cur.execute('UPDATE Ranking SET Points = Points - %s WHERE UserId = %s', (str(nuke), str(user_id)))
                 bot.send_document(group_id, 'http://imgur.com/vZDxkFk.gif')
-                audio = open('data/nuke.ogg', 'rb')
+                audio = open(os.path.join(os.path.dirname(sys.modules['demiReportTelegram'].__file__), 'data/nuke.ogg'),
+                             'rb')
                 bot.send_audio(group_id, audio)
                 bot.send_message(message.chat_id, 'ORDEN RECIBIDA nuke EN 15 SEG.',
                                  reply_to_message_id=message.message_id)
@@ -198,7 +201,7 @@ def send_perros(bot, update):
 
 def cuenta_perros(bot, user_id):
     targets = []
-    users = utils.get_userIds()
+    users = demi_utils.get_user_ids()
     users.remove(user_id)
     if len(users) >= 5:
         target = random.sample(range(len(users)), 5)
@@ -212,7 +215,7 @@ def cuenta_perros(bot, user_id):
 
 
 def cuenta_all(bot):
-    user_ids = utils.get_userIds()
+    user_ids = demi_utils.get_user_ids()
     for user_id in user_ids:
         thr1 = threading.Thread(target=reports.counter, args=(bot, utils.get_name(user_id), user_id))
         thr1.start()
