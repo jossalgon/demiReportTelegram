@@ -143,7 +143,7 @@ def send_nuke(bot, update):
             if user_points >= nuke:
                 cur.execute('UPDATE Ranking SET Points = Points - %s WHERE UserId = %s', (str(nuke), str(user_id)))
                 bot.send_document(group_id, 'http://imgur.com/vZDxkFk.gif')
-                audio = open(os.path.join(os.path.dirname(sys.modules['demiReportTelegram'].__file__), 'data/nuke.ogg'),
+                audio = open(os.path.join(os.path.dirname(sys.modules['demiReportTelegram'].__file__), 'data/voices/nuke.ogg'),
                              'rb')
                 bot.send_audio(group_id, audio)
                 bot.send_message(message.chat_id, 'ORDEN RECIBIDA nuke EN 15 SEG.',
