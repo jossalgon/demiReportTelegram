@@ -276,7 +276,7 @@ def main():
     dp.add_handler(CommandFilterHandler('ranking', filter_is_from_group, ranking))
     dp.add_handler(CommandFilterHandler('nuke', filter_is_from_group, poles.send_nuke))
     dp.add_handler(CommandFilterHandler('perros', filter_is_from_group, poles.send_perros))
-    dp.add_handler(MessageHandler(filter_pole_reward & Filters.photo, poles.change_group_photo_bot))
+    dp.add_handler(MessageHandler(filter_pole_reward and Filters.photo, poles.change_group_photo_bot))
     dp.add_handler(MessageHandler(filter_group_name_reward, poles.change_group_name_bot))
     dp.add_handler(CommandFilterHandler('no18', lambda msg: msg.from_user.id == admin_id, stop_18))
     dp.add_handler(CommandFilterHandler('si18', lambda msg: msg.from_user.id == admin_id, start_18))
