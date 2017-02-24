@@ -80,7 +80,7 @@ def get_not_mention():
 
 
 def change_group_photo():
-    os.system("./../tg/bin/telegram-cli -W -e 'channel_set_photo channel#1060426760 data/photo.jpg'")
+    os.system("./../tg/bin/telegram-cli -W -e 'channel_set_photo channel#1060426760 photo.jpg'")
     os.system("./../tg/bin/telegram-cli -W -e 'status_offline'")
 
 
