@@ -226,8 +226,8 @@ def change_group_photo_bot(bot, update):
     try:
         chat_id = message.chat.id
         msg = bot.send_message(chat_id, '🌀Procesando...')
-        file_info = bot.get_file(message.photo[-1].file_id)
-        downloaded_file = bot.download_file(file_info.file_path)
+        file_info = bot.getFile(message.photo[-1].file_id)
+        downloaded_file = bot.download(file_info.file_path)
         with open('photo.jpg', 'wb') as new_file:
             new_file.write(downloaded_file)
         demi_utils.change_group_photo()

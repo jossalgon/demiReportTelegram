@@ -162,7 +162,8 @@ def ranking(bot, update):
 
 
 def filter_pole_reward(msg):
-    return msg.chat.type == 'private' and variables.poles \
+    return msg.chat.type == 'private' and bool(msg.photo)\
+           and variables.poles \
            and int(msg.from_user.id) == variables.poles[0] \
            and datetime.today().weekday() == 5 \
            and photo_ok
@@ -276,7 +277,7 @@ def main():
     dp.add_handler(CommandFilterHandler('ranking', filter_is_from_group, ranking))
     dp.add_handler(CommandFilterHandler('nuke', filter_is_from_group, poles.send_nuke))
     dp.add_handler(CommandFilterHandler('perros', filter_is_from_group, poles.send_perros))
-    dp.add_handler(MessageHandler(filter_pole_reward and Filters.photo, poles.change_group_photo_bot))
+    dp.add_handler(MessageHandler(filter_pole_reward, poles.change_group_photo_bot))
     dp.add_handler(MessageHandler(filter_group_name_reward, poles.change_group_name_bot))
     dp.add_handler(CommandFilterHandler('no18', lambda msg: msg.from_user.id == admin_id, stop_18))
     dp.add_handler(CommandFilterHandler('si18', lambda msg: msg.from_user.id == admin_id, start_18))
