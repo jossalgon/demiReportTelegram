@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 import datetime
 import logging
 import os
@@ -216,9 +217,27 @@ def cuenta_perros(bot, user_id):
 
 def cuenta_all(bot):
     user_ids = demi_utils.get_user_ids()
+    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
     for user_id in user_ids:
-        thr1 = threading.Thread(target=reports.counter, args=(bot, utils.get_name(user_id), user_id))
-        thr1.start()
+        try:
+            ban_time = variables.ban_time
+            m, s = divmod(ban_time, 60)
+            bot.kick_chat_member(group_id, user_id)
+            text = 'Expulsado durante %02d:%02d minutos' % (m, s)
+            bot.send_message(user_id, text)
+        except:
+            logger.error('Fatal error in cuenta_all kicks', exc_info=True)
+    time.sleep(variables.ban_time)
+    for user_id in user_ids:
+        try:
+            bot.unban_chat_member(group_id, user_id)
+            with con.cursor() as cur:
+                cur.execute('DELETE FROM Reports WHERE Reported = %s', (str(user_id),))
+            button = InlineKeyboardButton('Invitación', url=variables.link)
+            markup = InlineKeyboardMarkup([[button]])
+            bot.send_message(user_id, 'Ya puedes entrar %s, usa esta invitación:' % utils.get_name(user_id), reply_markup=markup)
+        except:
+            logger.error('Fatal error in cuenta_all unban', exc_info=True)
 
 
 def change_group_photo_bot(bot, update):
