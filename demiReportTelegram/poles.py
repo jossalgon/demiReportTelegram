@@ -245,10 +245,8 @@ def change_group_photo_bot(bot, update):
     try:
         chat_id = message.chat.id
         msg = bot.send_message(chat_id, '🌀Procesando...')
-        file_info = bot.getFile(message.photo[-1].file_id)
-        downloaded_file = bot.download(file_info.file_path)
-        with open('photo.jpg', 'wb') as new_file:
-            new_file.write(downloaded_file)
+        photo_file = bot.getFile(message.photo[-1].file_id)
+        photo_file.download('photo.jpg')
         demi_utils.change_group_photo()
         bot.edit_message_text('✅ Foto cambiada', chat_id=chat_id, message_id=msg.message_id)
     except Exception:
