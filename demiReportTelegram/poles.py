@@ -155,7 +155,8 @@ def send_nuke(bot, update):
                 for i in range(5, 0, -1):
                     bot.send_message(group_id, 'nuke EN %d SEG.' % i)
                     time.sleep(1)
-                cuenta_all(bot)
+                user_ids = demi_utils.get_user_ids()
+                cuenta_all(bot, user_ids)
             else:
                 bot.send_message(message.chat_id,
                                  'No tienes puntos suficientes, te faltan %d ptos.' % (nuke - user_points),
@@ -202,21 +203,19 @@ def send_perros(bot, update):
 
 def cuenta_perros(bot, user_id):
     targets = []
-    users = demi_utils.get_user_ids()
-    users.remove(user_id)
-    if len(users) >= 5:
-        target = random.sample(range(len(users)), 5)
-        for t in target[:5]:
-            targets.append(users[t])
-    else:
-        targets = users
-    for user_id in targets:
-        thr1 = threading.Thread(target=reports.counter, args=(bot, utils.get_name(user_id), user_id))
-        thr1.start()
-
-
-def cuenta_all(bot):
     user_ids = demi_utils.get_user_ids()
+    user_ids.remove(user_id)
+    if len(user_ids) >= 5:
+        target = random.sample(range(len(user_ids)), 5)
+        for t in target[:5]:
+            targets.append(user_ids[t])
+        cuenta_all(bot, user_ids)
+    else:
+        cuenta_all(bot, user_ids)
+
+
+def cuenta_all(bot, user_ids):
+
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
     for user_id in user_ids:
         try:
