@@ -1,4 +1,5 @@
 requests
+python-telegram-bot
 ts3
 pymysql
 reportTelegram
