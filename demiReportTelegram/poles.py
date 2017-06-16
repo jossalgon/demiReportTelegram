@@ -171,7 +171,7 @@ def send_nuke(bot, update):
             con.commit()
             con.close()
 
-
+@run_async
 def send_perros(bot, update):
     message = update.message
     user_id = message.from_user.id
@@ -205,14 +205,14 @@ def send_perros(bot, update):
 
 
 def cuenta_perros(bot, user_id):
-    targets = []
+    targets = list()
     user_ids = demi_utils.get_user_ids()
     user_ids.remove(user_id)
     if len(user_ids) >= 5:
-        target = random.sample(range(len(user_ids)), 5)
-        for t in target[:5]:
+        samples = random.sample(range(len(user_ids)), 5)
+        for t in samples:
             targets.append(user_ids[t])
-        cuenta_all(bot, user_ids)
+        cuenta_all(bot, targets)
     else:
         cuenta_all(bot, user_ids)
 
