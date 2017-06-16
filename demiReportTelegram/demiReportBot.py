@@ -283,7 +283,7 @@ def main():
     dp.add_handler(
         CommandHandler('butts', adults.send_butts, lambda msg: variables.porn and filter_is_from_group))
     dp.add_handler(
-        CommandHandler('boobs', adults.send_butts, lambda msg: variables.porn and filter_is_from_group))
+        CommandHandler('boobs', adults.send_boobs, lambda msg: variables.porn and filter_is_from_group))
     dp.add_handler(CommandHandler('addpole', add_pole, lambda msg: msg.from_user.id == admin_id, pass_args=True))
     dp.add_handler(
         CommandHandler('addsubpole', add_subpole, lambda msg: msg.from_user.id == admin_id, pass_args=True))
