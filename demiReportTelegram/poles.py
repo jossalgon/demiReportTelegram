@@ -237,13 +237,20 @@ def cuenta_all(bot, user_ids):
     for user_id in user_ids:
         try:
             bot.unban_chat_member(group_id, user_id)
-            with con.cursor() as cur:
-                cur.execute('DELETE FROM Reports WHERE Reported = %s', (str(user_id),))
             button = InlineKeyboardButton('Invitación', url=variables.link)
             markup = InlineKeyboardMarkup([[button]])
             bot.send_message(user_id, 'Ya puedes entrar %s, usa esta invitación:' % utils.get_name(user_id), reply_markup=markup)
         except:
             logger.error('Fatal error in cuenta_all unban', exc_info=True)
+    try:
+        with con.cursor() as cur:
+            cur.execute('DELETE FROM Reports')
+    except:
+        logger.error('Fatal error in cuenta_all delete reports', exc_info=True)
+    finally:
+        if con:
+            con.commit()
+            con.close()
 
 
 def change_group_photo_bot(bot, update):
