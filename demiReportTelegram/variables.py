@@ -15,8 +15,6 @@ DB_USER = config['Database']['DB_USER']
 DB_PASS = config['Database']['DB_PASS']
 DB_NAME = config['Database']['DB_NAME']
 
-num_reports = 5
-ban_time = 300
 nuke = 30
 perros = 20
 porn = True

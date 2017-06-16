@@ -247,7 +247,7 @@ def main():
     utils.create_database()
     demi_utils.create_database()
 
-    updater = Updater(token=TG_TOKEN)
+    updater = Updater(token=TG_TOKEN, workers=32)
     dp = updater.dispatcher
 
     demi_utils.pole_timer(updater.job_queue)

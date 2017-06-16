@@ -1,13 +1,15 @@
 # -*- encoding: utf-8 -*-
+import pkgutil
 
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
+from telegram.ext.dispatcher import run_async
 import datetime
 import logging
 import os
 import sys
 import random
-import threading
 import time
+import io
 
 import pymysql
 from reportTelegram import reports
@@ -133,6 +135,7 @@ def get_ranking():
             con.close()
 
 
+@run_async
 def send_nuke(bot, update):
     message = update.message
     user_id = message.from_user.id
@@ -214,19 +217,23 @@ def cuenta_perros(bot, user_id):
         cuenta_all(bot, user_ids)
 
 
+@run_async
 def cuenta_all(bot, user_ids):
 
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
     for user_id in user_ids:
         try:
-            ban_time = variables.ban_time
+            ban_time = reports.variables.ban_time
+            sti = io.BufferedReader(io.BytesIO(pkgutil.get_data('reportTelegram', 'data/stickers/%s.webp' % reports.variables.sticker)))
+            bot.send_sticker(user_id, sti)
+            sti.close()
             m, s = divmod(ban_time, 60)
-            bot.kick_chat_member(group_id, user_id)
-            text = 'Expulsado durante %02d:%02d minutos' % (m, s)
+            text = 'Expulsado durante %02d:%02d minutos\n\n⚠️Esto no es un **** contador⚠' % (m, s)
             bot.send_message(user_id, text)
+            bot.kick_chat_member(group_id, user_id)
         except:
             logger.error('Fatal error in cuenta_all kicks', exc_info=True)
-    time.sleep(variables.ban_time)
+    time.sleep(reports.variables.ban_time)
     for user_id in user_ids:
         try:
             bot.unban_chat_member(group_id, user_id)
