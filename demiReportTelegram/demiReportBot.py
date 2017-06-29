@@ -235,6 +235,7 @@ def cancel(bot, update):
     bot.sendMessage(chat_id=message.chat_id, text='Eres tonto hasta para esto...',
                     reply_to_message_id=message.message_id,
                     reply_markup=ReplyKeyboardRemove())
+    return ConversationHandler.END
 
 
 def log_error(bot, update, error):
