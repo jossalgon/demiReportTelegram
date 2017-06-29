@@ -310,6 +310,17 @@ def main():
     for name in utils.get_names():
         dp.add_handler(CommandHandler(name.lower(), reportBot.report, lambda msg: msg.chat_id == group_id))
 
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('headshot', poles.pre_headshot, filter_is_from_group)],
+        states={
+            0: [RegexHandler('^(%s)$' % '|'.join(utils.get_names()), poles.headshot)],
+        },
+
+        fallbacks=[CommandHandler('cancel', cancel)]
+    )
+
+    dp.add_handler(conv_handler)
+
     dp.add_error_handler(log_error)
 
     updater.start_polling()

@@ -235,14 +235,16 @@ def pre_headshot(bot, update):
             if user_points >= HEADSHOT:
                 bot.send_message(message.chat_id, '🎯 HEADSHOT A ...\n\nO /cancel para cancelar el tiro',
                                  reply_to_message_id=message.message_id,
-                                 reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
+                                 reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True, selective=True))
                 return 0
             else:
                 bot.send_message(message.chat_id,
-                                 'No tienes puntos suficientes, te faltan %d ptos.' % (perros - user_points),
+                                 'No tienes puntos suficientes, te faltan %d ptos.' % (HEADSHOT - user_points),
                                  reply_to_message_id=message.message_id)
+                return ConversationHandler.END
     except Exception:
         logger.error('Fatal error in headshot', exc_info=True)
+        return ConversationHandler.END
     finally:
         if con:
             con.commit()
