@@ -10,9 +10,9 @@ import pkgutil
 from reportTelegram import reportBot, utils
 from teamSpeakTelegram import teamspeak
 from teamSpeakTelegram import utils as utils_teamspeak
-from telegram import MessageEntity, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import MessageEntity, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, RegexHandler, InlineQueryHandler, \
-    ChosenInlineResultHandler
+    ChosenInlineResultHandler, ConversationHandler
 
 from demiReportTelegram import adults, general, mentions, poles, variables, songs
 from demiReportTelegram import utils as demi_utils
@@ -230,6 +230,13 @@ def gett(bot, update, job_queue):
     bot.sendMessage(chat_id=message.chat_id, text=str(job_queue.queue.queue), reply_to_message_id=message.message_id)
 
 
+def cancel(bot, update):
+    message = update.message
+    bot.sendMessage(chat_id=message.chat_id, text='Eres tonto hasta para esto...',
+                    reply_to_message_id=message.message_id,
+                    reply_markup=ReplyKeyboardRemove())
+
+
 def log_error(bot, update, error):
     logger.warning('Update "%s" caused error "%s"' % (update, error))
 
@@ -301,6 +308,17 @@ def main():
 
     for name in utils.get_names():
         dp.add_handler(CommandHandler(name.lower(), reportBot.report, lambda msg: msg.chat_id == group_id))
+
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('headshot', poles.pre_headshot, filter_is_from_group)],
+        states={
+            0: [RegexHandler('^(%s)$' % '|'.join(utils.get_names()), poles.headshot)],
+        },
+
+        fallbacks=[CommandHandler('cancel', cancel)]
+    )
+
+    dp.add_handler(conv_handler)
 
     dp.add_error_handler(log_error)
 

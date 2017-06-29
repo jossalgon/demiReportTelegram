@@ -17,6 +17,7 @@ DB_NAME = config['Database']['DB_NAME']
 
 nuke = 30
 perros = 20
+HEADSHOT = 10
 porn = True
 poles = []
 new_members = []

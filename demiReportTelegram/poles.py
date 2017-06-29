@@ -2,6 +2,9 @@
 import pkgutil
 
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import ReplyKeyboardMarkup
+from telegram import ReplyKeyboardRemove
+from telegram.ext import ConversationHandler
 from telegram.ext.dispatcher import run_async
 import datetime
 import logging
@@ -22,6 +25,7 @@ admin_id = variables.admin_id
 group_id = variables.group_id
 perros = variables.perros
 nuke = variables.nuke
+HEADSHOT = variables.HEADSHOT
 
 DB_HOST = variables.DB_HOST
 DB_USER = variables.DB_USER
@@ -126,7 +130,7 @@ def get_ranking():
             top = '🏆 Ranking:\n*1º - %s (%d ptos)*\n' % (utils.get_name(rows[0][0]), rows[0][1])
             for row, pos in zip(rows[1:], range(2, 11)):
                 top += '%dº - %s (%d ptos)\n' % (pos, utils.get_name(row[0]), row[1])
-            top += '\n🐺 Perros por %d ptos.\n☢ Nuke por %d ptos.' % (perros, nuke)
+            top += '\n🎯 Headshot por %d ptos.\n🐺 Perros por %d ptos.\n☢ Nuke por %d ptos.' % (HEADSHOT, perros, nuke)
             return top
     except Exception:
         logger.error('Fatal error in get_ranking', exc_info=True)
@@ -216,6 +220,57 @@ def cuenta_perros(bot, user_id):
     else:
         cuenta_all(bot, user_ids)
 
+
+@run_async
+def pre_headshot(bot, update):
+    message = update.message
+    user_id = message.from_user.id
+    names = utils.get_names()
+    reply_keyboard = [names[i:i + 3] for i in range(0, len(names), 3)]
+    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    try:
+        with con.cursor() as cur:
+            cur.execute('SELECT Points FROM Ranking WHERE UserId = %s', (str(user_id),))
+            user_points = cur.fetchone()[0]
+            if user_points >= HEADSHOT:
+                bot.send_message(message.chat_id, '🎯 HEADSHOT A ...\n\nO /cancel para cancelar el tiro',
+                                 reply_to_message_id=message.message_id,
+                                 reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
+                return 0
+            else:
+                bot.send_message(message.chat_id,
+                                 'No tienes puntos suficientes, te faltan %d ptos.' % (perros - user_points),
+                                 reply_to_message_id=message.message_id)
+    except Exception:
+        logger.error('Fatal error in headshot', exc_info=True)
+    finally:
+        if con:
+            con.commit()
+            con.close()
+
+
+@run_async
+def headshot(bot, update):
+    message = update.message
+    user_id = message.from_user.id
+    name = update.message.text
+    reported = utils.get_user_id(name)
+    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    try:
+        with con.cursor() as cur:
+            cur.execute('UPDATE Ranking SET Points = Points - %s WHERE UserId = %s',
+                        (str(HEADSHOT), str(user_id)))
+            bot.send_document(group_id, 'https://media.giphy.com/media/3N2ML3tw4c4uc/giphy.gif',
+                              reply_markup=ReplyKeyboardRemove())
+            reports.counter(bot, name, reported)
+
+            return ConversationHandler.END
+    except Exception:
+        logger.error('Fatal error in headshot', exc_info=True)
+    finally:
+        if con:
+            con.commit()
+            con.close()
 
 @run_async
 def cuenta_all(bot, user_ids):
