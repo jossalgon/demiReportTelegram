@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 import pkgutil
+import threading
 
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram import ReplyKeyboardMarkup
@@ -264,7 +265,9 @@ def headshot(bot, update):
                         (str(HEADSHOT), str(user_id)))
             bot.send_document(group_id, 'https://media.giphy.com/media/3N2ML3tw4c4uc/giphy.gif',
                               reply_markup=ReplyKeyboardRemove())
-            reports.counter(bot, name, reported)
+
+            thr1 = threading.Thread(target=reports.counter, args=(bot, name, reported))
+            thr1.start()
 
             return ConversationHandler.END
     except Exception:
