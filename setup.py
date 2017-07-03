@@ -1,13 +1,13 @@
 from setuptools import setup
 
 setup(name='demiReportTelegram',
-      version='0.1.1',
+      version='0.2',
       description='A random funny telegram bot.',
       url='https://github.com/jossalgon/demiReportTelegram',
       author='Jose Luis Salazar Gonzalez',
       author_email='joseluis25sg@gmail.com',
       packages=['demiReportTelegram'],
-      package_data={'demiReportTelegram': ['data/music/*', 'data/stickers/*', 'data/voices/*']},
+      package_data={'demiReportTelegram': ['data/music/*', 'data/stickers/*', 'data/voices/*', 'data/gifs/*']},
       install_requires=[
           "requests",
           "ts3",

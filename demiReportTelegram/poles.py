@@ -260,12 +260,17 @@ def headshot(bot, update):
     reported = utils.get_user_id(name)
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
     try:
+        resource = 'data/gifs/headshots/%s.mp4' % str(reported)
+        gif_path = os.path.join(os.path.dirname(sys.modules['demiReportTelegram'].__file__), resource)
+        if os.path.isfile(gif_path):
+            gif = open(gif_path, 'rb')
+        else:
+            gif = 'https://media.giphy.com/media/3N2ML3tw4c4uc/giphy.gif'
+
         with con.cursor() as cur:
             cur.execute('UPDATE Ranking SET Points = Points - %s WHERE UserId = %s',
                         (str(HEADSHOT), str(user_id)))
-            bot.send_document(group_id, 'https://media.giphy.com/media/3N2ML3tw4c4uc/giphy.gif',
-                              reply_markup=ReplyKeyboardRemove())
-
+            bot.send_document(group_id, gif, reply_markup=ReplyKeyboardRemove())
             thr1 = threading.Thread(target=reports.counter, args=(bot, name, reported))
             thr1.start()
 
