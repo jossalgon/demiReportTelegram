@@ -12,7 +12,7 @@ from teamSpeakTelegram import teamspeak
 from teamSpeakTelegram import utils as utils_teamspeak
 from telegram import MessageEntity, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, RegexHandler, InlineQueryHandler, \
-    ChosenInlineResultHandler, ConversationHandler
+    ChosenInlineResultHandler, ConversationHandler, CallbackQueryHandler
 
 from demiReportTelegram import adults, general, mentions, poles, variables, songs
 from demiReportTelegram import utils as demi_utils
@@ -109,28 +109,13 @@ def raulito_oro(bot, update):
 
 
 # SONGS
-def flooder(user_data, job_queue):
-    if 'flood' in user_data and user_data['flood'] > 0:
-        user_data['flood'] -= 1
-        if user_data['flood'] == 0:
-            job_queue.run_once(clear_flooder, 300, context=user_data)
-    elif 'flood' not in user_data:
-        user_data['flood'] = 5
-    return user_data['flood'] == 0
-
-
-def clear_flooder(bot, job):
-    user_data = job.context
-    user_data['flood'] = 5
-
-
 def inline_query(bot, update):
     songs.inline_query(bot, update)
 
 
 def inline_result(bot, update, user_data, job_queue):
     from_id = update.chosen_inline_result.from_user.id
-    if utils.is_from_group(from_id) and not flooder(user_data, job_queue):
+    if utils.is_from_group(from_id) and not demi_utils.flooder(user_data, job_queue):
         songs.inline_result(bot, update)
 
 
@@ -306,6 +291,8 @@ def main():
     dp.add_handler(CommandHandler('locura', general.send_locura, filter_is_from_group))
     dp.add_handler(CommandHandler('mecagoenlamadrequemepario', general.send_gritopokemon, filter_is_from_group))
     dp.add_handler(CommandHandler('gett', gett, pass_job_queue=True))
+    dp.add_handler(CallbackQueryHandler(mentions.pipas_selected, pass_user_data=True, pass_job_queue=True))
+    dp.add_handler(CommandHandler('pipas', mentions.who_pipas, filter_is_from_group))
 
     for name in utils.get_names():
         dp.add_handler(CommandHandler(name.lower(), reportBot.report, lambda msg: msg.chat_id == group_id))

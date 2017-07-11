@@ -1,5 +1,7 @@
 import configparser
 from collections import deque
+import pymysql
+
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -39,3 +41,15 @@ def add_member_to_poles(new_member, pos):
 def clean_poles(bot, job):
     global poles
     poles = []
+
+    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    try:
+        with con.cursor() as cur:
+            cur.execute("DELETE FROM PipasVotes")
+            cur.execute("DELETE FROM Pipas")
+    except Exception as exception:
+        print(exception)
+    finally:
+        if con:
+            con.commit()
+            con.close()

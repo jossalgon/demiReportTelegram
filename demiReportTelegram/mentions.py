@@ -1,5 +1,7 @@
 # -*- encoding: utf-8 -*-
 
+from telegram import InlineKeyboardButton
+from telegram import InlineKeyboardMarkup
 import logging
 import re
 
@@ -51,6 +53,10 @@ def mention_handler(bot, message):
     mentions = re.findall(r'@\w+', message.text)
     user_ids = demi_utils.get_user_ids()
     not_mention = demi_utils.get_not_mention()
+
+    if message.from_user.id in demi_utils.get_trolls():
+        return False
+
     for mention in mentions:
         mention = mention.lower()
         if mention in usernames:
@@ -60,6 +66,62 @@ def mention_handler(bot, message):
         for user_id in user_ids:
             if user_id not in not_mention:
                 bot.forward_message(user_id, group_id, message.message_id)
+    if bool(re.match(r'(?i).*@pipas.*', message.text)):
+        event_id = str(message.message_id) + str(message.from_user.id)
+        text = re.subn(r'(?i) ?@pipas ?', '', message.text)[0].capitalize()
+        demi_utils.create_event(event_id=event_id, message_id=message.message_id, text=text)
+
+        keyboard = [[InlineKeyboardButton("Sí", callback_data='0_%s' % event_id),
+                     InlineKeyboardButton("Quizás", callback_data='1_%s' % event_id),
+                     InlineKeyboardButton("Pijama", callback_data='2_%s' % event_id)]]
+
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        for user_id in user_ids:
+            if user_id not in not_mention:
+                msg = bot.forward_message(user_id, group_id, message.message_id, reply_markup=reply_markup)
+                bot.send_message(user_id, '¿Sales?‎', reply_markup=reply_markup, reply_to_message_id=msg.message_id)
+
+
+def pipas_selected(bot, update, user_data, job_queue):
+    query = update.callback_query
+    query_data = query.data.split('_')
+    query_selected = int(query_data[0])
+    event_id = str(query_data[1])
+    user_id = query.from_user.id
+
+    if demi_utils.flooder(user_data, job_queue):
+        return False
+
+    if query_selected == 0:
+        selected = 'Sí'
+    elif query_selected == 1:
+        selected = 'Quizás'
+    else:
+        selected = 'Pijama'
+
+    demi_utils.add_participant_event(event_id, user_id, query_selected)
+
+    bot.edit_message_text(text="Has elegido: %s" % selected,
+                          chat_id=query.message.chat_id,
+                          message_id=query.message.message_id)
+
+    keyboard = [[InlineKeyboardButton("Sí", callback_data='0_%s' % event_id),
+                 InlineKeyboardButton("Quizás", callback_data='1_%s' % event_id),
+                 InlineKeyboardButton("Pijama", callback_data='2_%s' % event_id)]]
+    keyboard[0][query_selected].text = '[%s]' % selected
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    bot.edit_message_reply_markup(reply_markup=reply_markup, chat_id=query.message.chat_id,
+                                  message_id=query.message.message_id)
+    if query_selected == 0:
+        bot.send_message(group_id, '¡%s sale!' % utils.get_name(user_id),
+                         reply_to_message_id=demi_utils.get_event_message_id(event_id))
+
+
+def who_pipas(bot, update):
+    message = update.message
+    res = demi_utils.get_who_pipas()
+    bot.send_message(message.chat.id, res, parse_mode='Markdown')
 
 
 def mention_toggle(user_id):

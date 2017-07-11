@@ -5,6 +5,8 @@ import time
 import logging
 import pymysql
 
+from reportTelegram import utils as report_utils
+
 from demiReportTelegram import variables
 
 ADMIN_ID = variables.admin_id
@@ -79,6 +81,119 @@ def get_not_mention():
         return not_mentions
 
 
+def get_events():
+    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    events = []
+    try:
+        with con.cursor() as cur:
+            cur.execute("SELECT eventId FROM Pipas")
+            rows = cur.fetchall()
+            for row in rows:
+                events.append(row[0])
+    except Exception as exception:
+        print(exception)
+    finally:
+        if con:
+            con.close()
+        return events
+
+
+def get_event_text(event_id):
+    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    res = ''
+    try:
+        with con.cursor() as cur:
+            cur.execute("SELECT text FROM Pipas WHERE eventId=%s", (str(event_id),))
+            res = cur.fetchone()[0]
+    except Exception as exception:
+        print(exception)
+    finally:
+        if con:
+            con.close()
+        return res
+
+
+def get_event_message_id(event_id):
+    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    res = ''
+    try:
+        with con.cursor() as cur:
+            cur.execute("SELECT messageId FROM Pipas WHERE eventId=%s", (str(event_id),))
+            res = cur.fetchone()[0]
+    except Exception as exception:
+        print(exception)
+    finally:
+        if con:
+            con.close()
+        return res
+
+
+def get_participants_event(event_id):
+    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    user_ids = [[], [], []]
+    try:
+        with con.cursor() as cur:
+            cur.execute("SELECT userId, selected  FROM PipasVotes WHERE eventId = %s", (str(event_id),))
+            rows = cur.fetchall()
+            for row in rows:
+                if row[1] == 0:
+                    user_ids[0].append(report_utils.get_name(row[0]))
+                if row[1] == 1:
+                    user_ids[1].append(report_utils.get_name(row[0]))
+                if row[1] == 2:
+                    user_ids[2].append(report_utils.get_name(row[0]))
+    except Exception as exception:
+        print(exception)
+    finally:
+        if con:
+            con.close()
+        return user_ids
+
+
+def create_event(event_id, message_id, text):
+    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    try:
+        with con.cursor() as cur:
+            cur.execute("INSERT INTO Pipas VALUES(%s, %s, %s)", (str(event_id), str(message_id), str(text)))
+    except Exception as exception:
+        print(exception)
+    finally:
+        if con:
+            con.commit()
+            con.close()
+
+
+def add_participant_event(event_id, user_id, selected):
+    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    try:
+        with con.cursor() as cur:
+            cur.execute('INSERT INTO PipasVotes(eventId, userId, selected) VALUES(%s, %s, %s) '
+                        'ON DUPLICATE KEY UPDATE selected = VALUES(selected)',
+                        (str(event_id), str(user_id), str(selected)))
+    except Exception:
+        logger.error('Fatal error in pipas_selected', exc_info=True)
+    finally:
+        if con:
+            con.commit()
+            con.close()
+
+
+def get_who_pipas():
+    res = '🌳 Quedadas'
+    events = get_events()
+    for event in events:
+        option_1 = get_participants_event(event)[0]
+        option_2 = get_participants_event(event)[1]
+        option_3 = get_participants_event(event)[2]
+
+        res += '\n\n %s' % get_event_text(event)
+        res += '\n✔️ Sí (%i): %s' % (len(option_1), ', '.join(option_1))
+        res += '\n🌀 Quizás (%i): %s' % (len(option_2), ', '.join(option_2))
+        res += '\n❌ Pijama (%i): %s' % (len(option_3), ', '.join(option_3))
+
+    return res
+
+
 def change_group_photo():
     os.system("./../tg/bin/telegram-cli -W -e 'channel_set_photo channel#1060426760 photo.jpg'")
     os.system("./../tg/bin/telegram-cli -W -e 'status_offline'")
@@ -117,6 +232,19 @@ def create_database():
                   `groupName` text NOT NULL, \
                   `position` int(11) NOT NULL \
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; \
+                CREATE TABLE IF NOT EXISTS `Pipas` ( \
+                  `eventId` BIGINT(30) NOT NULL, \
+                  `messageId` BIGINT(30) NOT NULL, \
+                  `text` TEXT NOT NULL, \
+                  PRIMARY KEY (eventId) \
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; \
+                CREATE TABLE IF NOT EXISTS `PipasVotes` ( \
+                  `eventId` BIGINT(30) NOT NULL, \
+                  `userId` int(11) NOT NULL, \
+                  `selected` int(11) NOT NULL, \
+                  UNIQUE KEY (eventId, userId), \
+                  FOREIGN KEY (eventId) REFERENCES Pipas(eventId) \
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; \
                 ")
     except Exception as exception:
         print(exception)
@@ -148,3 +276,18 @@ def pole_timer(job_queue):
     secs2 = delta_t2.seconds + 1
     job_queue.run_daily(callback=pole_counter, time=secs)
     job_queue.run_daily(callback=variables.clean_poles, time=secs2)
+
+
+def flooder(user_data, job_queue):
+    if 'flood' in user_data and user_data['flood'] > 0:
+        user_data['flood'] -= 1
+        if user_data['flood'] == 0:
+            job_queue.run_once(clear_flooder, 300, context=user_data)
+    elif 'flood' not in user_data:
+        user_data['flood'] = 5
+    return user_data['flood'] == 0
+
+
+def clear_flooder(bot, job):
+    user_data = job.context
+    user_data['flood'] = 5
