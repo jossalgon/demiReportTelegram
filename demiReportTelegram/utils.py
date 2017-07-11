@@ -140,8 +140,6 @@ def get_participants_event(event_id):
                     user_ids[0].append(report_utils.get_name(row[0]))
                 if row[1] == 1:
                     user_ids[1].append(report_utils.get_name(row[0]))
-                if row[1] == 2:
-                    user_ids[2].append(report_utils.get_name(row[0]))
     except Exception as exception:
         print(exception)
     finally:
@@ -184,12 +182,10 @@ def get_who_pipas():
     for event in events:
         option_1 = get_participants_event(event)[0]
         option_2 = get_participants_event(event)[1]
-        option_3 = get_participants_event(event)[2]
 
         res += '\n\n %s' % get_event_text(event)
         res += '\n✔️ Sí (%i): %s' % (len(option_1), ', '.join(option_1))
-        res += '\n🌀 Quizás (%i): %s' % (len(option_2), ', '.join(option_2))
-        res += '\n❌ Pijama (%i): %s' % (len(option_3), ', '.join(option_3))
+        res += '\n❌ No (%i): %s' % (len(option_2), ', '.join(option_2))
 
     return res
 

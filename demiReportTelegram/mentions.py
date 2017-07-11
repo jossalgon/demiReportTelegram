@@ -72,14 +72,12 @@ def mention_handler(bot, message):
         demi_utils.create_event(event_id=event_id, message_id=message.message_id, text=text)
 
         keyboard = [[InlineKeyboardButton("Sí", callback_data='0_%s' % event_id),
-                     InlineKeyboardButton("Quizás", callback_data='1_%s' % event_id),
-                     InlineKeyboardButton("Pijama", callback_data='2_%s' % event_id)]]
-
+                     InlineKeyboardButton("No", callback_data='1_%s' % event_id)]]
         reply_markup = InlineKeyboardMarkup(keyboard)
         for user_id in user_ids:
-            if user_id not in not_mention:
-                msg = bot.forward_message(user_id, group_id, message.message_id, reply_markup=reply_markup)
-                bot.send_message(user_id, '¿Sales?‎', reply_markup=reply_markup, reply_to_message_id=msg.message_id)
+            # if user_id not in not_mention:
+            msg = bot.forward_message(user_id, group_id, message.message_id, reply_markup=reply_markup)
+            bot.send_message(user_id, '¿Sales?‎', reply_markup=reply_markup, reply_to_message_id=msg.message_id)
 
 
 def pipas_selected(bot, update, user_data, job_queue):
@@ -92,12 +90,16 @@ def pipas_selected(bot, update, user_data, job_queue):
     if demi_utils.flooder(user_data, job_queue):
         return False
 
+    if int(event_id) not in demi_utils.get_events():
+        bot.edit_message_text(text="Quedada terminada",
+                              chat_id=query.message.chat_id,
+                              message_id=query.message.message_id)
+        return False
+
     if query_selected == 0:
         selected = 'Sí'
-    elif query_selected == 1:
-        selected = 'Quizás'
     else:
-        selected = 'Pijama'
+        selected = 'No'
 
     demi_utils.add_participant_event(event_id, user_id, query_selected)
 
@@ -106,8 +108,7 @@ def pipas_selected(bot, update, user_data, job_queue):
                           message_id=query.message.message_id)
 
     keyboard = [[InlineKeyboardButton("Sí", callback_data='0_%s' % event_id),
-                 InlineKeyboardButton("Quizás", callback_data='1_%s' % event_id),
-                 InlineKeyboardButton("Pijama", callback_data='2_%s' % event_id)]]
+                 InlineKeyboardButton("No", callback_data='1_%s' % event_id)]]
     keyboard[0][query_selected].text = '[%s]' % selected
 
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -116,6 +117,7 @@ def pipas_selected(bot, update, user_data, job_queue):
     if query_selected == 0:
         bot.send_message(group_id, '¡%s sale!' % utils.get_name(user_id),
                          reply_to_message_id=demi_utils.get_event_message_id(event_id))
+    return True
 
 
 def who_pipas(bot, update):
