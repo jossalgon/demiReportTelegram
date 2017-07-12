@@ -128,6 +128,22 @@ def get_event_message_id(event_id):
         return res
 
 
+def get_vote(event_id, user_id):
+    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    res = ''
+    try:
+        with con.cursor() as cur:
+            cur.execute("SELECT selected FROM PipasVotes WHERE eventId=%s and userId=%s", (str(event_id), str(user_id)))
+            query_fetch = cur.fetchone()
+            res = query_fetch[0] if query_fetch is not None else res
+    except Exception as exception:
+        print(exception)
+    finally:
+        if con:
+            con.close()
+        return res
+
+
 def get_participants_event(event_id):
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
     user_ids = [[], [], []]

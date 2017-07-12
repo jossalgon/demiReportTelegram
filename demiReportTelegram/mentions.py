@@ -87,7 +87,7 @@ def pipas_selected(bot, update, user_data, job_queue):
     event_id = str(query_data[1])
     user_id = query.from_user.id
 
-    if demi_utils.flooder(user_data, job_queue):
+    if demi_utils.flooder(user_data, job_queue) or demi_utils.get_vote(event_id, user_id) == query_selected:
         return False
 
     if int(event_id) not in demi_utils.get_events():
@@ -100,8 +100,6 @@ def pipas_selected(bot, update, user_data, job_queue):
         selected = 'Sí'
     else:
         selected = 'No'
-
-    demi_utils.add_participant_event(event_id, user_id, query_selected)
 
     bot.edit_message_text(text="Has elegido: %s" % selected,
                           chat_id=query.message.chat_id,
@@ -117,6 +115,12 @@ def pipas_selected(bot, update, user_data, job_queue):
     if query_selected == 0:
         bot.send_message(group_id, '¡%s sale!' % utils.get_name(user_id),
                          reply_to_message_id=demi_utils.get_event_message_id(event_id))
+    elif query_selected == 1 and demi_utils.get_vote(event_id, user_id) == 0:
+        bot.send_message(group_id, '¡%s hace achu achu!' % utils.get_name(user_id),
+                         reply_to_message_id=demi_utils.get_event_message_id(event_id))
+
+    demi_utils.add_participant_event(event_id, user_id, query_selected)
+
     return True
 
 
