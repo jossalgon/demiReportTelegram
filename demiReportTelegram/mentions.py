@@ -160,15 +160,13 @@ def mention_control(bot, update, message_edited_id=None):
                 [InlineKeyboardButton(text_button3, callback_data='MENTION_MENCIONES_%i' % int(not is_silent_menciones))]]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    text = '📢 Menciones\n\n¿Qué avisos quieres?‎'
     if message_edited_id:
-        bot.edit_message_text(text, user_id, message_edited_id)
         bot.edit_message_reply_markup(reply_markup=reply_markup, chat_id=user_id, message_id=message_edited_id)
     else:
         if message.chat.type in [Chat.GROUP, Chat.SUPERGROUP]:
             message.reply_text('Tienes MP')
 
-        bot.send_message(user_id, text, reply_markup=reply_markup)
+        bot.send_message(user_id, '📢 Menciones\n\n¿Qué avisos quieres?‎', reply_markup=reply_markup)
 
 
 def post_mention_control(bot, update, user_data, job_queue):
