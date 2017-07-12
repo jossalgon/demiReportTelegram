@@ -87,7 +87,11 @@ def pipas_selected(bot, update, user_data, job_queue):
     event_id = str(query_data[1])
     user_id = query.from_user.id
 
-    if demi_utils.flooder(user_data, job_queue) or demi_utils.get_vote(event_id, user_id) == query_selected:
+    if demi_utils.get_vote(event_id, user_id) == query_selected:
+        bot.answer_callback_query(query.id, 'Ya has votado esa opción')
+        return False
+    elif demi_utils.flooder(user_data, job_queue):
+        bot.answer_callback_query(query.id, 'Has realizado demasiados votos')
         return False
 
     if int(event_id) not in demi_utils.get_events():
@@ -120,8 +124,7 @@ def pipas_selected(bot, update, user_data, job_queue):
                          reply_to_message_id=demi_utils.get_event_message_id(event_id))
 
     demi_utils.add_participant_event(event_id, user_id, query_selected)
-
-    return True
+    bot.answer_callback_query(query.id, 'Votado correctamente')
 
 
 def who_pipas(bot, update):
