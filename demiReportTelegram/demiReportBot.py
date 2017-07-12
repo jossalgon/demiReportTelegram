@@ -81,12 +81,6 @@ def mention_handler(bot, update):
         mentions.mention_handler(bot, message)
 
 
-def mention_toggle(bot, update):
-    message = update.message
-    res = mentions.mention_toggle(message.from_user.id)
-    bot.send_message(message.chat_id, res, reply_to_message_id=message.message_id)
-
-
 def hipermierda(bot, update):
     message = update.message
     user_id = message.from_user.id
@@ -259,7 +253,6 @@ def main():
     dp.add_handler(CommandHandler('ts', teamspeak.ts_stats, filter_is_from_group))
     dp.add_handler(CommandHandler('troll', set_troll, lambda msg: msg.from_user.id == admin_id, pass_args=True))
     dp.add_handler(MessageHandler(Filters.entity(MessageEntity.MENTION) & not_forwarded, mention_handler))
-    dp.add_handler(CommandHandler('mention', mention_toggle, filter_is_from_group))
     dp.add_handler(RegexHandler(r'(?i).*hipertextual.com|.*twitter\.com\/Hipertextual', hipermierda))
     dp.add_handler(RegexHandler(r'(?i)(?=.*es)(?=.*raulito)(?=.*oro)?', raulito_oro))
     dp.add_handler(InlineQueryHandler(inline_query))
@@ -292,13 +285,14 @@ def main():
     dp.add_handler(CommandHandler('locura', general.send_locura, filter_is_from_group))
     dp.add_handler(CommandHandler('mecagoenlamadrequemepario', general.send_gritopokemon, filter_is_from_group))
     dp.add_handler(CommandHandler('gett', gett, pass_job_queue=True))
-    dp.add_handler(CallbackQueryHandler(mentions.pipas_selected, pass_user_data=True, pass_job_queue=True))
+    dp.add_handler(CallbackQueryHandler(mentions.callback_query_handler, pass_user_data=True, pass_job_queue=True))
     dp.add_handler(CommandHandler('pipas', mentions.who_pipas, filter_is_from_group))
+    dp.add_handler(CommandHandler('mention', mentions.mention_control, filter_is_from_group))
 
     for name in utils.get_names():
         dp.add_handler(CommandHandler(name.lower(), reportBot.report, lambda msg: msg.chat_id == group_id))
 
-    conv_handler = ConversationHandler(
+    headshot_handler = ConversationHandler(
         entry_points=[CommandHandler('headshot', poles.pre_headshot, filter_is_from_group)],
         states={
             0: [RegexHandler('^(%s)$' % '|'.join(utils.get_names()), poles.headshot)],
@@ -306,8 +300,7 @@ def main():
 
         fallbacks=[CommandHandler('cancel', cancel)]
     )
-
-    dp.add_handler(conv_handler)
+    dp.add_handler(headshot_handler)
 
     dp.add_error_handler(log_error)
 

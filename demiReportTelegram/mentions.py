@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-
+from telegram import Chat
 from telegram import InlineKeyboardButton
 from telegram import InlineKeyboardMarkup
 import logging
@@ -52,7 +52,9 @@ def mention_handler(bot, message):
     usernames = demi_utils.get_usernames(bot)
     mentions = re.findall(r'@\w+', message.text)
     user_ids = demi_utils.get_user_ids()
-    not_mention = demi_utils.get_not_mention()
+    silent_todos = demi_utils.get_not_mention('TODOS')
+    silent_menciones = demi_utils.get_not_mention('MENCIONES')
+    silent_pipas = demi_utils.get_not_mention('PIPAS')
 
     if message.from_user.id in demi_utils.get_trolls():
         return False
@@ -60,11 +62,11 @@ def mention_handler(bot, message):
     for mention in mentions:
         mention = mention.lower()
         if mention in usernames:
-            if usernames[mention] not in not_mention:
+            if usernames[mention] not in silent_menciones:
                 bot.forward_message(usernames[mention], group_id, message.message_id)
     if bool(re.match(r'(?i).*@todos.*', message.text)):
         for user_id in user_ids:
-            if user_id not in not_mention:
+            if user_id not in silent_todos:
                 bot.forward_message(user_id, group_id, message.message_id)
     if bool(re.match(r'(?i).*@pipas.*', message.text)):
         event_id = str(message.message_id) + str(message.from_user.id)
@@ -75,9 +77,17 @@ def mention_handler(bot, message):
                      InlineKeyboardButton("No", callback_data='1_%s' % event_id)]]
         reply_markup = InlineKeyboardMarkup(keyboard)
         for user_id in user_ids:
-            # if user_id not in not_mention:
-            msg = bot.forward_message(user_id, group_id, message.message_id, reply_markup=reply_markup)
-            bot.send_message(user_id, '¿Sales?‎', reply_markup=reply_markup, reply_to_message_id=msg.message_id)
+            if user_id not in silent_pipas:
+                msg = bot.forward_message(user_id, group_id, message.message_id, reply_markup=reply_markup)
+                bot.send_message(user_id, '¿Sales?‎', reply_markup=reply_markup, reply_to_message_id=msg.message_id)
+
+
+def callback_query_handler(bot, update, user_data, job_queue):
+    query_data = update.callback_query.data
+    if query_data.startswith('MENTION'):
+        post_mention_control(bot, update, user_data, job_queue)
+    else:
+        pipas_selected(bot, update, user_data, job_queue)
 
 
 def pipas_selected(bot, update, user_data, job_queue):
@@ -133,20 +143,42 @@ def who_pipas(bot, update):
     bot.send_message(message.chat.id, res, parse_mode='Markdown')
 
 
-def mention_toggle(user_id):
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
-    try:
-        with con.cursor() as cur:
-            not_mention = demi_utils.get_not_mention()
-            if user_id not in not_mention:
-                cur.execute('INSERT INTO SilentMention VALUES(%s)', (str(user_id),))
-                return '❎ Menciones desactivadas'
-            else:
-                cur.execute('DELETE FROM SilentMention WHERE UserId = %s', (str(user_id),))
-                return '✅ Menciones activadas'
-    except Exception:
-        logger.error('Fatal error in mention_toggle', exc_info=True)
-    finally:
-        if con:
-            con.commit()
-            con.close()
+def mention_control(bot, update, message_edited_id=None):
+    message = update.message
+    user_id = message.from_user.id if message_edited_id is None else update.callback_query.from_user.id
+
+    is_silent_todos = demi_utils.is_silent_user(user_id, 'TODOS')
+    is_silent_pipas = demi_utils.is_silent_user(user_id, 'PIPAS')
+    is_silent_menciones = demi_utils.is_silent_user(user_id, 'MENCIONES')
+
+    text_button1 = '❌@Todos desactivado' if is_silent_todos else '✔@Todos activado'
+    text_button2 = '❌@Pipas desactivado' if is_silent_pipas else '✔️@Pipas activado'
+    text_button3 = '❌Menciones desactivadas' if is_silent_menciones else '✔Menciones activadas'
+
+    keyboard = [[InlineKeyboardButton(text_button1, callback_data='MENTION_TODOS_%i' % int(not is_silent_todos)),
+                 InlineKeyboardButton(text_button2, callback_data='MENTION_PIPAS_%i' % int(not is_silent_pipas))],
+                [InlineKeyboardButton(text_button3, callback_data='MENTION_MENCIONES_%i' % int(not is_silent_menciones))]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    text = '📢 Menciones\n\n¿Qué avisos quieres?‎'
+    if message_edited_id:
+        bot.edit_message_text(text, user_id, message_edited_id)
+        bot.edit_message_reply_markup(reply_markup=reply_markup, chat_id=user_id, message_id=message_edited_id)
+    else:
+        if message.chat.type in [Chat.GROUP, Chat.SUPERGROUP]:
+            message.reply_text('Tienes MP')
+
+        bot.send_message(user_id, text, reply_markup=reply_markup)
+
+
+def post_mention_control(bot, update, user_data, job_queue):
+    query = update.callback_query
+    query_data = query.data.split('_')
+    mention_type = str(query_data[1])
+    silent = bool(int(query_data[2]))
+
+    demi_utils.mention_control(query.from_user.id, mention_type, silent)
+    text = mention_type.lower().capitalize()
+    text += ' desactivado' if silent else ' activado'
+    bot.answer_callback_query(query.id, text)
+    mention_control(bot, update, message_edited_id=query.message.message_id)

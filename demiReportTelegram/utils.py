@@ -64,12 +64,12 @@ def get_trolls():
         return trolls
 
 
-def get_not_mention():
+def get_not_mention(mention_type):
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
     not_mentions = []
     try:
         with con.cursor() as cur:
-            cur.execute("SELECT * FROM SilentMention")
+            cur.execute("SELECT userId FROM SilentMention WHERE mentionType=%s", (str(mention_type),))
             rows = cur.fetchall()
             for row in rows:
                 not_mentions.append(row[0])
@@ -206,6 +206,42 @@ def get_who_pipas():
     return res
 
 
+def mention_control(user_id, mention_type, silent):
+    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    try:
+        with con.cursor() as cur:
+            if silent:
+                cur.execute('INSERT INTO SilentMention VALUES(%s, %s)', (str(user_id), str(mention_type)))
+                return '❎ Menciones desactivadas'
+            else:
+                cur.execute('DELETE FROM SilentMention WHERE userId=%s and mentionType=%s',
+                            (str(user_id), str(mention_type)))
+                return '✅ Menciones activadas'
+    except Exception:
+        logger.error('Fatal error in mention_toggle', exc_info=True)
+    finally:
+        if con:
+            con.commit()
+            con.close()
+
+
+def is_silent_user(user_id, mention_type):
+    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    res = False
+    try:
+        with con.cursor() as cur:
+            cur.execute("SELECT userId FROM SilentMention WHERE userId=%s and mentionType=%s",
+                        (str(user_id), str(mention_type)))
+            query_fetch = cur.fetchone()
+            res = query_fetch is not None
+    except Exception as exception:
+        print(exception)
+    finally:
+        if con:
+            con.close()
+        return res
+
+
 def change_group_photo():
     os.system("./../tg/bin/telegram-cli -W -e 'channel_set_photo channel#1060426760 photo.jpg'")
     os.system("./../tg/bin/telegram-cli -W -e 'status_offline'")
@@ -235,7 +271,8 @@ def create_database():
                   `Points` int(11) NOT NULL \
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; \
                 CREATE TABLE IF NOT EXISTS `SilentMention` ( \
-                  `UserId` int(11) NOT NULL \
+                  `userId` int(11) NOT NULL, \
+                  `mentionType` TEXT NOT NULL \
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; \
                 CREATE TABLE IF NOT EXISTS `Trolls` ( \
                   `UserId` int(11) NOT NULL \
