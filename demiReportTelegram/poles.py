@@ -304,6 +304,7 @@ def cuenta_all(bot, user_ids):
             bot.unban_chat_member(group_id, user_id)
             with con.cursor() as cur:
                 cur.execute('DELETE FROM Reports WHERE Reported = %s', (str(user_id),))
+                cur.execute('UPDATE Flamers SET Kicks = Kicks + 1 WHERE UserId = %s', (str(user_id),))
             button = InlineKeyboardButton('Invitación', url=variables.link)
             markup = InlineKeyboardMarkup([[button]])
             bot.send_message(user_id, 'Ya puedes entrar %s, usa esta invitación:' % utils.get_name(user_id), reply_markup=markup)
