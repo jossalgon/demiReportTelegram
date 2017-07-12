@@ -206,8 +206,9 @@ def clean_poles(bot, update):
 # OTHER COMMANDS
 def talk(bot, update, args):
     text = ' '.join(args)
+    text = text.replace('\\n', '\n')
     if text:
-        bot.send_message(group_id, text)
+        bot.send_message(group_id, text, parse_mode='Markdown')
 
 
 def gett(bot, update, job_queue):
