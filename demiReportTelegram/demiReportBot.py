@@ -287,6 +287,7 @@ def main():
     dp.add_handler(CommandHandler('gett', gett, pass_job_queue=True))
     dp.add_handler(CallbackQueryHandler(mentions.callback_query_handler, pass_user_data=True, pass_job_queue=True))
     dp.add_handler(CommandHandler('pipas', mentions.who_pipas, filter_is_from_group))
+    dp.add_handler(CommandHandler('repipas', mentions.recover_pipas, filter_is_from_group))
     dp.add_handler(CommandHandler('mention', mentions.mention_control, filter_is_from_group))
 
     for name in utils.get_names():

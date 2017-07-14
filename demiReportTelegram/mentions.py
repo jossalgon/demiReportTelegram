@@ -69,7 +69,7 @@ def mention_handler(bot, message):
             if user_id not in silent_todos:
                 bot.forward_message(user_id, group_id, message.message_id)
     if bool(re.match(r'(?i).*@pipas.*', message.text)):
-        event_id = str(message.message_id) + str(message.from_user.id)
+        event_id = str(message.message_id)
         text = re.subn(r'(?i) ?@pipas ?', '', message.text)[0].capitalize()
         demi_utils.create_event(event_id=event_id, message_id=message.message_id, text=text)
 
@@ -141,6 +141,18 @@ def who_pipas(bot, update):
     message = update.message
     res = demi_utils.get_who_pipas()
     bot.send_message(message.chat.id, res, parse_mode='Markdown')
+
+
+def recover_pipas(bot, update):
+    message = update.message
+    user_id = message.from_user.id
+
+    for event_id in demi_utils.get_events():
+        keyboard = [[InlineKeyboardButton("Sí", callback_data='0_%s' % event_id),
+                     InlineKeyboardButton("No", callback_data='1_%s' % event_id)]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        msg = bot.forward_message(user_id, group_id, event_id, reply_markup=reply_markup)
+        bot.send_message(user_id, '¿Sales?‎', reply_markup=reply_markup, reply_to_message_id=msg.message_id)
 
 
 def mention_control(bot, update, message_edited_id=None):
