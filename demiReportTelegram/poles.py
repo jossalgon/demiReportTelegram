@@ -271,16 +271,18 @@ def headshot(bot, update):
             cur.execute('UPDATE Ranking SET Points = Points - %s WHERE UserId = %s',
                         (str(HEADSHOT), str(user_id)))
             bot.send_document(group_id, gif, reply_markup=ReplyKeyboardRemove())
+            if message.chat.type == 'private':
+                bot.send_document(user_id, gif, reply_markup=ReplyKeyboardRemove())
             thr1 = threading.Thread(target=reports.counter, args=(bot, name, reported))
             thr1.start()
 
-            return ConversationHandler.END
     except Exception:
         logger.error('Fatal error in headshot', exc_info=True)
     finally:
         if con:
             con.commit()
             con.close()
+        return ConversationHandler.END
 
 @run_async
 def cuenta_all(bot, user_ids):
