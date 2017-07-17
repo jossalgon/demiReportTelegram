@@ -330,8 +330,7 @@ def pole_timer(job_queue):
 def flooder(user_data, job_queue):
     if 'flood' in user_data and user_data['flood'] > 0:
         user_data['flood'] -= 1
-        if user_data['flood'] == 0:
-            job_queue.run_once(clear_flooder, 300, context=user_data)
+        run_flood_timer(user_data, job_queue)
     elif 'flood' not in user_data:
         user_data['flood'] = 5
     return user_data['flood'] == 0
@@ -340,3 +339,11 @@ def flooder(user_data, job_queue):
 def clear_flooder(bot, job):
     user_data = job.context
     user_data['flood'] = 5
+
+
+def run_flood_timer(user_data, job_queue):
+    if 'flood_job' in user_data:
+        job = user_data['flood_job']
+        job.schedule_removal()
+        del user_data['flood_job']
+    user_data['flood_job'] = job_queue.run_once(clear_flooder, 10, context=user_data)

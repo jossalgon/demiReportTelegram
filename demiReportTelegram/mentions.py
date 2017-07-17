@@ -147,6 +147,9 @@ def recover_pipas(bot, update):
     message = update.message
     user_id = message.from_user.id
 
+    if message.chat.type in [Chat.GROUP, Chat.SUPERGROUP]:
+        message.reply_text('Tienes MP')
+
     for event_id in demi_utils.get_events():
         keyboard = [[InlineKeyboardButton("Sí", callback_data='0_%s' % event_id),
                      InlineKeyboardButton("No", callback_data='1_%s' % event_id)]]
