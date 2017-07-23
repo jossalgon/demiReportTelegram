@@ -225,31 +225,38 @@ def cuenta_perros(bot, user_id):
 @run_async
 def pre_headshot(bot, update):
     message = update.message
-    user_id = message.from_user.id
     names = utils.get_names()
     reply_keyboard = [names[i:i + 3] for i in range(0, len(names), 3)]
+    if check_headshot(bot, update):
+        bot.send_message(message.chat_id, '🎯 HEADSHOT A ...\n\nO /cancel para cancelar el tiro',
+                         reply_to_message_id=message.message_id,
+                         reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True, selective=True))
+        return 0
+    else:
+        return ConversationHandler.END
+
+
+def check_headshot(bot, update):
+    message = update.message
+    user_id = message.from_user.id
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
     try:
         with con.cursor() as cur:
             cur.execute('SELECT Points FROM Ranking WHERE UserId = %s', (str(user_id),))
             user_points = cur.fetchone()[0]
-            if user_points >= HEADSHOT:
-                bot.send_message(message.chat_id, '🎯 HEADSHOT A ...\n\nO /cancel para cancelar el tiro',
-                                 reply_to_message_id=message.message_id,
-                                 reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True, selective=True))
-                return 0
-            else:
+            if user_points < HEADSHOT:
                 bot.send_message(message.chat_id,
                                  'No tienes puntos suficientes, te faltan %d ptos.' % (HEADSHOT - user_points),
                                  reply_to_message_id=message.message_id,
-                                 reply_markup=ReplyKeyboardRemove())
-                return ConversationHandler.END
+                                 reply_markup=ReplyKeyboardRemove(selective=True))
+                return False
+            else:
+                return True
     except Exception:
-        logger.error('Fatal error in headshot', exc_info=True)
-        return ConversationHandler.END
+        logger.error('Fatal error in check_headshot', exc_info=True)
+        return False
     finally:
         if con:
-            con.commit()
             con.close()
 
 
@@ -260,23 +267,29 @@ def headshot(bot, update):
     name = update.message.text
     reported = utils.get_user_id(name)
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+
+    if not check_headshot(bot, update):
+        return ConversationHandler.END
     try:
         resource = 'data/gifs/headshots/%s.mp4' % str(reported)
         gif_path = os.path.join(os.path.dirname(sys.modules['demiReportTelegram'].__file__), resource)
         if os.path.isfile(gif_path):
-            gif = open(gif_path, 'rb')
+            gif1, gif2 = open(gif_path, 'rb'), open(gif_path, 'rb')
         else:
-            gif = 'https://media.giphy.com/media/3N2ML3tw4c4uc/giphy.gif'
+            gif1 = gif2 = 'https://media.giphy.com/media/3N2ML3tw4c4uc/giphy.gif'
 
         with con.cursor() as cur:
             cur.execute('UPDATE Ranking SET Points = Points - %s WHERE UserId = %s',
                         (str(HEADSHOT), str(user_id)))
-            bot.send_document(group_id, gif, reply_markup=ReplyKeyboardRemove())
-            if message.chat.type == 'private':
-                bot.send_document(user_id, gif, reply_markup=ReplyKeyboardRemove())
-            thr1 = threading.Thread(target=reports.counter, args=(bot, name, reported))
-            thr1.start()
 
+        bot.send_document(group_id, gif1, reply_markup=ReplyKeyboardRemove(selective=True))
+        if message.chat.type == 'private':
+            bot.send_document(user_id, gif2, reply_markup=ReplyKeyboardRemove(selective=True))
+        if not isinstance(gif1, str):
+            gif1.close()
+            gif2.close()
+        thr1 = threading.Thread(target=reports.counter, args=(bot, name, reported))
+        thr1.start()
     except Exception:
         logger.error('Fatal error in headshot', exc_info=True)
     finally:
@@ -284,6 +297,7 @@ def headshot(bot, update):
             con.commit()
             con.close()
         return ConversationHandler.END
+
 
 @run_async
 def cuenta_all(bot, user_ids):

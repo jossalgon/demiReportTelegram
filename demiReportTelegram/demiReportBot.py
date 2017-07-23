@@ -214,7 +214,7 @@ def cancel(bot, update):
     message = update.message
     bot.sendMessage(chat_id=message.chat_id, text='Eres tonto hasta para esto...',
                     reply_to_message_id=message.message_id,
-                    reply_markup=ReplyKeyboardRemove())
+                    reply_markup=ReplyKeyboardRemove(selective=True))
     return ConversationHandler.END
 
 
