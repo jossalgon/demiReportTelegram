@@ -39,14 +39,13 @@ def start(bot, update):
 def welcome_to_member(bot, update):
     message = update.message
     try:
-        if message.new_chat_member:
-            user_id = message.new_chat_member.id
-            sti = io.BufferedReader(io.BytesIO(pkgutil.get_data('demiReportTelegram', 'data/stickers/nancy_ok.webp')))
-            bot.send_sticker(variables.group_id, sti)
-            sti.close()
-            if not utils.is_from_group(user_id):
-                variables.add_new_member(user_id)
-                bot.send_message(variables.admin_id, user_id)
+        user_id = message.new_chat_members[0].id
+        sti = io.BufferedReader(io.BytesIO(pkgutil.get_data('demiReportTelegram', 'data/stickers/nancy_ok.webp')))
+        bot.send_sticker(variables.group_id, sti)
+        sti.close()
+        if not utils.is_from_group(user_id):
+            variables.add_new_member(user_id)
+            bot.send_message(variables.admin_id, user_id)
     except:
         logger.error('Fatal error in welcome_to_member', exc_info=True)
 
@@ -247,7 +246,7 @@ def main():
     dp.add_handler(CommandHandler('reports', reportBot.set_reports, filter_is_from_group, pass_args=True))
     dp.add_handler(CommandHandler('bantime', reportBot.set_ban_time, lambda msg: msg.from_user.id == admin_id,
                                   pass_args=True))
-    dp.add_handler(MessageHandler(Filters.status_update, welcome_to_member))
+    dp.add_handler(MessageHandler(Filters.status_update.new_chat_members, welcome_to_member))
     dp.add_handler(CommandHandler('sipower', power_on, lambda msg: msg.from_user.id == admin_id))
     dp.add_handler(CommandHandler('nopower', power_off, lambda msg: msg.from_user.id == admin_id))
     dp.add_handler(CommandHandler('ts', teamspeak.ts_stats, filter_is_from_group))
