@@ -126,10 +126,10 @@ def get_ranking():
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
     try:
         with con.cursor() as cur:
-            cur.execute('SELECT UserId, Points FROM Ranking GROUP BY UserId, Points ORDER BY Points DESC LIMIT 10')
+            cur.execute('SELECT UserId, Points FROM Ranking GROUP BY UserId, Points ORDER BY Points DESC')
             rows = cur.fetchall()
             top = '🏆 Ranking:\n*1º - %s (%d ptos)*\n' % (utils.get_name(rows[0][0]), rows[0][1])
-            for row, pos in zip(rows[1:], range(2, 11)):
+            for row, pos in zip(rows[1:], range(2, len(rows)+1)):
                 top += '%dº - %s (%d ptos)\n' % (pos, utils.get_name(row[0]), row[1])
             top += '\n🎯 Headshot por %d ptos.\n🐺 Perros por %d ptos.\n☢ Nuke por %d ptos.' % (HEADSHOT, perros, nuke)
             return top
