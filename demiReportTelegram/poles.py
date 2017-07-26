@@ -211,7 +211,7 @@ def send_perros(bot, update):
 
 def cuenta_perros(bot, user_id):
     targets = list()
-    user_ids = demi_utils.get_user_ids()
+    user_ids = [user_id for user_id in demi_utils.get_user_ids() if bot.get_chat_member(group_id, user_id).status != 'kicked']
     user_ids.remove(user_id)
     if len(user_ids) >= 5:
         samples = random.sample(range(len(user_ids)), 5)
