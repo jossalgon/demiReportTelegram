@@ -28,6 +28,7 @@ group_id = variables.group_id
 perros = variables.perros
 nuke = variables.nuke
 HEADSHOT = variables.HEADSHOT
+MUTE = variables.MUTE
 
 DB_HOST = variables.DB_HOST
 DB_USER = variables.DB_USER
@@ -132,7 +133,8 @@ def get_ranking():
             top = '🏆 Ranking:\n*1º - %s (%d ptos)*\n' % (utils.get_name(rows[0][0]), rows[0][1])
             for row, pos in zip(rows[1:], range(2, len(rows)+1)):
                 top += '%dº - %s (%d ptos)\n' % (pos, utils.get_name(row[0]), row[1])
-            top += '\n🎯 Headshot por %d ptos.\n🐺 Perros por %d ptos.\n☢ Nuke por %d ptos.' % (HEADSHOT, perros, nuke)
+            top += '\n🤐 Mute por %d ptos.\n🎯 Headshot por %d ptos.\n🐺 Perros por %d ptos.\n☢ Nuke por %d ptos.' % \
+                   (MUTE, HEADSHOT, perros, nuke)
             return top
     except Exception:
         logger.error('Fatal error in get_ranking', exc_info=True)
@@ -228,7 +230,7 @@ def pre_headshot(bot, update):
     message = update.message
     names = utils.get_names()
     reply_keyboard = [names[i:i + 3] for i in range(0, len(names), 3)]
-    if check_headshot(bot, update):
+    if check_points(bot, update, HEADSHOT):
         bot.send_message(message.chat_id, '🎯 HEADSHOT A ...\n\nO /cancel para cancelar el tiro',
                          reply_to_message_id=message.message_id,
                          reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True, selective=True))
@@ -237,7 +239,7 @@ def pre_headshot(bot, update):
         return ConversationHandler.END
 
 
-def check_headshot(bot, update):
+def check_points(bot, update, points):
     message = update.message
     user_id = message.from_user.id
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
@@ -245,16 +247,16 @@ def check_headshot(bot, update):
         with con.cursor() as cur:
             cur.execute('SELECT Points FROM Ranking WHERE UserId = %s', (str(user_id),))
             user_points = cur.fetchone()[0]
-            if user_points < HEADSHOT:
+            if user_points < points:
                 bot.send_message(message.chat_id,
-                                 'No tienes puntos suficientes, te faltan %d ptos.' % (HEADSHOT - user_points),
+                                 'No tienes puntos suficientes, te faltan %d ptos.' % (points - user_points),
                                  reply_to_message_id=message.message_id,
                                  reply_markup=ReplyKeyboardRemove(selective=True))
                 return False
             else:
                 return True
     except Exception:
-        logger.error('Fatal error in check_headshot', exc_info=True)
+        logger.error('Fatal error in check_points', exc_info=True)
         return False
     finally:
         if con:
@@ -269,7 +271,7 @@ def headshot(bot, update):
     reported = utils.get_user_id(name)
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
 
-    if not check_headshot(bot, update):
+    if not check_points(bot, update, HEADSHOT):
         return ConversationHandler.END
     try:
         resource = 'data/gifs/headshots/%s.mp4' % str(reported)
@@ -283,9 +285,11 @@ def headshot(bot, update):
             cur.execute('UPDATE Ranking SET Points = Points - %s WHERE UserId = %s',
                         (str(HEADSHOT), str(user_id)))
 
-        bot.send_document(group_id, gif1, reply_markup=ReplyKeyboardRemove(selective=True))
+        bot.send_document(group_id, gif1, reply_to_message_id=message.message_id,
+                          reply_markup=ReplyKeyboardRemove(selective=True))
         if message.chat.type == 'private':
-            bot.send_document(user_id, gif2, reply_markup=ReplyKeyboardRemove(selective=True))
+            bot.send_document(user_id, gif2, reply_to_message_id=message.message_id,
+                              reply_markup=ReplyKeyboardRemove(selective=True))
         if not isinstance(gif1, str):
             gif1.close()
             gif2.close()
@@ -335,6 +339,88 @@ def cuenta_all(bot, user_ids):
     if con:
         con.commit()
         con.close()
+
+
+@run_async
+def pre_mute(bot, update):
+    message = update.message
+    names = utils.get_names()
+    reply_keyboard = [names[i:i + 3] for i in range(0, len(names), 3)]
+    if check_points(bot, update, MUTE):
+        bot.send_message(message.chat_id, '🎯 MUTE A ...\n\nO /cancel para cancelar el muteo',
+                         reply_to_message_id=message.message_id,
+                         reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True, selective=True))
+        return 0
+    else:
+        return ConversationHandler.END
+
+
+@run_async
+def mute(bot, update):
+    message = update.message
+    user_id = message.from_user.id
+    name = update.message.text
+    reported = utils.get_user_id(name)
+    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+
+    if not check_points(bot, update, MUTE):
+        return ConversationHandler.END
+    try:
+        with con.cursor() as cur:
+            cur.execute('UPDATE Ranking SET Points = Points - %s WHERE UserId = %s',
+                        (str(MUTE), str(user_id)))
+
+        text = 'Mira %s que te calles la puta boca 🤐\nCon amor @%s' % (name, message.from_user.username)
+        bot.send_message(group_id, text, reply_markup=ReplyKeyboardRemove(selective=True))
+        if message.chat.type == 'private':
+            text = 'Has silenciado a %s 🤐' % name
+            bot.send_message(user_id, text, reply_to_message_id=message.message_id,
+                             reply_markup=ReplyKeyboardRemove(selective=True))
+
+        thr1 = threading.Thread(target=couter_mute, args=(bot, reported))
+        thr1.start()
+    except Exception:
+        logger.error('Fatal error in mute', exc_info=True)
+    finally:
+        if con:
+            con.commit()
+            con.close()
+        return ConversationHandler.END
+
+
+def couter_mute(bot, reported):
+    try:
+        user_data = report_variables.user_data_dict[reported]
+
+        while bot.get_chat_member(group_id, reported).status == 'kicked' and 'ban_time' in user_data:
+            time.sleep(user_data['ban_time'] + 1)
+
+        if 'mute_time' in user_data and user_data['mute_time'] > 0:
+            user_data['mute_time'] += variables.MUTE_TIME
+            bot.restrict_chat_member(group_id, reported, can_send_messages=False,
+                                     until_date=time.time()+variables.MUTE_TIME)
+            m, s = divmod(variables.MUTE_TIME, 60)
+            text = 'Mute actualizado: +%02d:%02d' % (m, s)
+            bot.send_message(reported, text)
+            return True
+
+        user_data['mute_time'] = variables.MUTE_TIME
+        m, s = divmod(user_data['mute_time'], 60)
+        text = '🤐 Muteado durante: %02d:%02d' % (m, s)
+        msg = bot.send_message(reported, text)
+
+        bot.restrict_chat_member(group_id, reported, can_send_messages=False,
+                                 until_date=time.time() + variables.MUTE_TIME)
+
+        while user_data['mute_time'] > 0:
+            time.sleep(1)
+            user_data['mute_time'] -= 1
+            m, s = divmod(user_data['mute_time'], 60)
+            text = '🤐 Muteado durante: %02d:%02d' % (m, s)
+            bot.edit_message_text(text, chat_id=reported, message_id=msg.message_id)
+        bot.send_message(reported, 'Ya puedes volver a hablar 😁')
+    except Exception:
+        logger.error('Fatal error in mute', exc_info=True)
 
 
 def change_group_photo_bot(bot, update):

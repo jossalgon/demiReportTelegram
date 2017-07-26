@@ -299,9 +299,19 @@ def main():
             0: [RegexHandler('^(%s)$' % '|'.join(utils.get_names()), poles.headshot)],
         },
 
-        fallbacks=[CommandHandler('cancel', cancel)]
+        fallbacks=[CommandHandler('cancel', cancel), CommandHandler('mute', cancel)]
     )
     dp.add_handler(headshot_handler)
+
+    mute_handler = ConversationHandler(
+        entry_points=[CommandHandler('mute', poles.pre_mute, filter_is_from_group)],
+        states={
+            0: [RegexHandler('^(%s)$' % '|'.join(utils.get_names()), poles.mute)],
+        },
+
+        fallbacks=[CommandHandler('cancel', cancel), CommandHandler('headshot', cancel)]
+    )
+    dp.add_handler(mute_handler)
 
     dp.add_error_handler(log_error)
 
