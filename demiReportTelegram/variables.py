@@ -19,7 +19,7 @@ DB_NAME = config['Database']['DB_NAME']
 
 nuke = 30
 perros = 20
-HEADSHOT = 10
+HEADSHOT = 7
 MUTE = 5
 MUTE_TIME = 600
 porn = True

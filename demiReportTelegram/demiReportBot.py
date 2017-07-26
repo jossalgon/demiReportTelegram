@@ -210,6 +210,21 @@ def gett(bot, update, job_queue):
     bot.sendMessage(chat_id=message.chat_id, text=str(job_queue.queue.queue), reply_to_message_id=message.message_id)
 
 
+def set_mute_time(bot, update, args):
+    message = update.message
+    seconds = args[0]
+    if seconds.isdigit():
+        variables.MUTE_TIME = int(seconds)
+        m, s = divmod(variables.MUTE_TIME, 60)
+        mute_time_text = '%01d:%02d' % (m, s)
+        res = 'MUTE TIME A {0} MINUTOS'.format(mute_time_text)
+        chat_id = group_id
+    else:
+        res = 'Send me a number like "/mutetime 5"'
+        chat_id = message.chat_id
+    bot.send_message(chat_id, res)
+
+
 def cancel(bot, update):
     message = update.message
     bot.sendMessage(chat_id=message.chat_id, text='Eres tonto hasta para esto...',
@@ -247,6 +262,7 @@ def main():
     dp.add_handler(CommandHandler('who', reportBot.who, filter_is_from_group))
     dp.add_handler(CommandHandler('reports', reportBot.set_reports, filter_is_from_group, pass_args=True))
     dp.add_handler(CommandHandler('bantime', reportBot.set_ban_time, Filters.user(user_id=admin_id), pass_args=True))
+    dp.add_handler(CommandHandler('mutetime', set_mute_time, Filters.user(user_id=admin_id), pass_args=True))
     dp.add_handler(MessageHandler(Filters.status_update.new_chat_members, welcome_to_member))
     dp.add_handler(CommandHandler('sipower', power_on, Filters.user(user_id=admin_id)))
     dp.add_handler(CommandHandler('nopower', power_off, Filters.user(user_id=admin_id)))
