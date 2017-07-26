@@ -18,6 +18,7 @@ import io
 import pymysql
 from reportTelegram import reports
 from reportTelegram import utils
+from reportTelegram import variables as report_variables
 
 from demiReportTelegram import utils as demi_utils
 from demiReportTelegram import variables
@@ -301,24 +302,28 @@ def headshot(bot, update):
 
 @run_async
 def cuenta_all(bot, user_ids):
-
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
     for user_id in user_ids:
+        user_data = report_variables.user_data_dict[user_id]
         try:
-            ban_time = reports.variables.ban_time
+            if 'ban_time' in user_data and user_data['ban_time'] > 0 \
+                    and bot.get_chat_member(group_id, user_id).status == 'kicked':
+                user_data['ban_time'] += reports.variables.ban_time
+            else:
+                user_data['ban_time'] = reports.variables.ban_time
+
             sti = io.BufferedReader(io.BytesIO(pkgutil.get_data('reportTelegram', 'data/stickers/%s.webp' % reports.variables.sticker)))
             bot.send_sticker(user_id, sti)
             sti.close()
-            m, s = divmod(ban_time, 60)
+            m, s = divmod(user_data['ban_time'], 60)
             text = 'Expulsado durante %02d:%02d minutos\n\n⚠️Esto no es un **** contador⚠' % (m, s)
             bot.send_message(user_id, text)
-            bot.kick_chat_member(group_id, user_id)
+            bot.kick_chat_member(group_id, user_id, time.time()+user_data['ban_time'])
         except:
             logger.error('Fatal error in cuenta_all kicks', exc_info=True)
     time.sleep(reports.variables.ban_time)
     for user_id in user_ids:
         try:
-            bot.unban_chat_member(group_id, user_id)
             with con.cursor() as cur:
                 cur.execute('DELETE FROM Reports WHERE Reported = %s', (str(user_id),))
                 cur.execute('UPDATE Flamers SET Kicks = Kicks + 1 WHERE UserId = %s', (str(user_id),))

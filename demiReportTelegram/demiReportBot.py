@@ -8,6 +8,7 @@ from datetime import datetime
 import pkgutil
 
 from reportTelegram import reportBot, utils
+from reportTelegram import variables as report_variables
 from teamSpeakTelegram import teamspeak
 from teamSpeakTelegram import utils as utils_teamspeak
 from telegram import MessageEntity, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
@@ -236,6 +237,7 @@ def main():
 
     updater = Updater(token=TG_TOKEN, workers=32)
     dp = updater.dispatcher
+    report_variables.user_data_dict = dp.user_data
 
     demi_utils.pole_timer(updater.job_queue)
 
@@ -244,13 +246,12 @@ def main():
     dp.add_handler(CommandHandler('expulsados', reportBot.top_kicks, filter_is_from_group))
     dp.add_handler(CommandHandler('who', reportBot.who, filter_is_from_group))
     dp.add_handler(CommandHandler('reports', reportBot.set_reports, filter_is_from_group, pass_args=True))
-    dp.add_handler(CommandHandler('bantime', reportBot.set_ban_time, lambda msg: msg.from_user.id == admin_id,
-                                  pass_args=True))
+    dp.add_handler(CommandHandler('bantime', reportBot.set_ban_time, Filters.user(user_id=admin_id), pass_args=True))
     dp.add_handler(MessageHandler(Filters.status_update.new_chat_members, welcome_to_member))
-    dp.add_handler(CommandHandler('sipower', power_on, lambda msg: msg.from_user.id == admin_id))
-    dp.add_handler(CommandHandler('nopower', power_off, lambda msg: msg.from_user.id == admin_id))
+    dp.add_handler(CommandHandler('sipower', power_on, Filters.user(user_id=admin_id)))
+    dp.add_handler(CommandHandler('nopower', power_off, Filters.user(user_id=admin_id)))
     dp.add_handler(CommandHandler('ts', teamspeak.ts_stats, filter_is_from_group))
-    dp.add_handler(CommandHandler('troll', set_troll, lambda msg: msg.from_user.id == admin_id, pass_args=True))
+    dp.add_handler(CommandHandler('troll', set_troll, Filters.user(user_id=admin_id), pass_args=True))
     dp.add_handler(MessageHandler(Filters.entity(MessageEntity.MENTION) & not_forwarded, mention_handler))
     dp.add_handler(RegexHandler(r'(?i).*hipertextual.com|.*twitter\.com\/Hipertextual', hipermierda))
     dp.add_handler(RegexHandler(r'(?i)(?=.*es)(?=.*raulito)(?=.*oro)?', raulito_oro))
@@ -264,17 +265,17 @@ def main():
     dp.add_handler(CommandHandler('perros', poles.send_perros, filter_is_from_group))
     dp.add_handler(MessageHandler(filter_pole_reward, poles.change_group_photo_bot))
     dp.add_handler(MessageHandler(filter_group_name_reward, poles.change_group_name_bot))
-    dp.add_handler(CommandHandler('no18', stop_18, lambda msg: msg.from_user.id == admin_id))
-    dp.add_handler(CommandHandler('si18', start_18, lambda msg: msg.from_user.id == admin_id))
+    dp.add_handler(CommandHandler('no18', stop_18, Filters.user(user_id=admin_id)))
+    dp.add_handler(CommandHandler('si18', start_18, Filters.user(user_id=admin_id)))
     dp.add_handler(
         CommandHandler('butts', adults.send_butts, lambda msg: variables.porn and filter_is_from_group))
     dp.add_handler(
         CommandHandler('boobs', adults.send_boobs, lambda msg: variables.porn and filter_is_from_group))
-    dp.add_handler(CommandHandler('addpole', add_pole, lambda msg: msg.from_user.id == admin_id, pass_args=True))
+    dp.add_handler(CommandHandler('addpole', add_pole, Filters.user(user_id=admin_id), pass_args=True))
     dp.add_handler(
-        CommandHandler('addsubpole', add_subpole, lambda msg: msg.from_user.id == admin_id, pass_args=True))
-    dp.add_handler(CommandHandler('cleanpoles', clean_poles, lambda msg: msg.from_user.id == admin_id))
-    dp.add_handler(CommandHandler('talk', talk, lambda msg: msg.from_user.id == admin_id, pass_args=True))
+        CommandHandler('addsubpole', add_subpole, Filters.user(user_id=admin_id), pass_args=True))
+    dp.add_handler(CommandHandler('cleanpoles', clean_poles, Filters.user(user_id=admin_id)))
+    dp.add_handler(CommandHandler('talk', talk, Filters.user(user_id=admin_id), pass_args=True))
     dp.add_handler(CommandHandler('purge', general.purger, filter_is_from_group))
     dp.add_handler(CommandHandler('demigrante', general.send_demigrante, filter_is_from_group))
     dp.add_handler(CommandHandler('shh', general.send_shh, filter_is_from_group))
@@ -283,14 +284,14 @@ def main():
     dp.add_handler(CommandHandler('disculpa', general.send_disculpa, filter_is_from_group))
     dp.add_handler(CommandHandler('locura', general.send_locura, filter_is_from_group))
     dp.add_handler(CommandHandler('mecagoenlamadrequemepario', general.send_gritopokemon, filter_is_from_group))
-    dp.add_handler(CommandHandler('gett', gett, pass_job_queue=True))
+    dp.add_handler(CommandHandler('gett', gett, Filters.user(user_id=admin_id), pass_job_queue=True))
     dp.add_handler(CallbackQueryHandler(mentions.callback_query_handler, pass_user_data=True, pass_job_queue=True))
     dp.add_handler(CommandHandler('pipas', mentions.who_pipas, filter_is_from_group))
     dp.add_handler(CommandHandler('repipas', mentions.recover_pipas, filter_is_from_group))
     dp.add_handler(CommandHandler('mention', mentions.mention_control, filter_is_from_group))
 
     for name in utils.get_names():
-        dp.add_handler(CommandHandler(name.lower(), reportBot.report, lambda msg: msg.chat_id == group_id))
+        dp.add_handler(CommandHandler(name.lower(), reportBot.report, Filters.chat(chat_id=group_id)))
 
     headshot_handler = ConversationHandler(
         entry_points=[CommandHandler('headshot', poles.pre_headshot, filter_is_from_group)],
