@@ -233,6 +233,12 @@ def cancel(bot, update):
     return ConversationHandler.END
 
 
+def pin(bot, update):
+    message = update.message.reply_to_message
+    if message is not None:
+        bot.pinChatMessage(chat_id=group_id, message_id=message.message_id, disable_notification=True)
+
+
 def log_error(bot, update, error):
     logger.warning('Update "%s" caused error "%s"' % (update, error))
 
@@ -283,6 +289,7 @@ def main():
     dp.add_handler(MessageHandler(filter_group_name_reward, poles.change_group_name_bot))
     dp.add_handler(CommandHandler('no18', stop_18, Filters.user(user_id=admin_id)))
     dp.add_handler(CommandHandler('si18', start_18, Filters.user(user_id=admin_id)))
+    dp.add_handler(CommandHandler('pin', pin, Filters.user(user_id=admin_id)))
     dp.add_handler(
         CommandHandler('butts', adults.send_butts, lambda msg: variables.porn and filter_is_from_group))
     dp.add_handler(
