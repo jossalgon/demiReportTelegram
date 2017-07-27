@@ -102,6 +102,18 @@ def raulito_oro(bot, update):
     bot.send_message(message.chat_id, 'No, todavía no', reply_to_message_id=message.message_id)
 
 
+def send_selu_sticker(bot, update):
+    message = update.message
+    if message.chat_id != group_id:
+        return False
+    try:
+        sti = io.BufferedReader(io.BytesIO(pkgutil.get_data('demiReportTelegram', 'data/stickers/selu.webp')))
+        bot.send_sticker(message.chat_id, sti)
+        sti.close()
+    except:
+        logger.error('Fatal error in send_selu_sticker', exc_info=True)
+
+
 # SONGS
 def inline_query(bot, update):
     songs.inline_query(bot, update)
@@ -277,6 +289,7 @@ def main():
     dp.add_handler(MessageHandler(Filters.entity(MessageEntity.MENTION) & not_forwarded, mention_handler))
     dp.add_handler(RegexHandler(r'(?i).*hipertextual.com|.*twitter\.com\/Hipertextual', hipermierda))
     dp.add_handler(RegexHandler(r'(?i)(?=.*es)(?=.*raulito)(?=.*oro)?', raulito_oro))
+    dp.add_handler(RegexHandler(r'(?i).*y no [\w ]+ a selu\?', send_selu_sticker))
     dp.add_handler(InlineQueryHandler(inline_query))
     dp.add_handler(ChosenInlineResultHandler(inline_result, pass_user_data=True, pass_job_queue=True))
     dp.add_handler(RegexHandler(r'(?i)po+le+.*', pole_handler))
