@@ -166,9 +166,18 @@ def recover_pipas(bot, update):
     for event_id in demi_utils.get_events():
         keyboard = [[InlineKeyboardButton("Sí", callback_data='0_%s' % event_id),
                      InlineKeyboardButton("No", callback_data='1_%s' % event_id)]]
+
+        vote = demi_utils.get_vote(event_id, user_id)
+        if vote is not None:
+            selected = ("Sí" if vote == 0 else "No")
+            keyboard[0][vote].text = '[%s]' % selected
+            text = "Has elegido: %s" % selected
+        else:
+            text = "¿Sales?‎"
+
         reply_markup = InlineKeyboardMarkup(keyboard)
         msg = bot.forward_message(user_id, group_id, event_id, reply_markup=reply_markup)
-        bot.send_message(user_id, '¿Sales?‎', reply_markup=reply_markup, reply_to_message_id=msg.message_id)
+        bot.send_message(user_id, text, reply_markup=reply_markup, reply_to_message_id=msg.message_id)
 
 
 def mention_control(bot, update, message_edited_id=None):
