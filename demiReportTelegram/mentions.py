@@ -84,7 +84,13 @@ def mention_handler(bot, message):
 
 def callback_query_handler(bot, update, user_data, job_queue):
     query_data = update.callback_query.data
-    if query_data.startswith('MENTION'):
+    if query_data.startswith('PIPAS_UPDATE'):
+        if demi_utils.get_who_pipas() == update.effective_message.text:
+            bot.answer_callback_query(update.callback_query.id, 'Sin cambios')
+        else:
+            who_pipas(bot, update, message_id=update.effective_message.message_id, chat_id=update.effective_chat.id)
+            bot.answer_callback_query(update.callback_query.id, 'Actualizado correctamente')
+    elif query_data.startswith('MENTION'):
         post_mention_control(bot, update, user_data, job_queue)
     else:
         pipas_selected(bot, update, user_data, job_queue)
@@ -137,10 +143,17 @@ def pipas_selected(bot, update, user_data, job_queue):
     bot.answer_callback_query(query.id, 'Votado correctamente')
 
 
-def who_pipas(bot, update):
+def who_pipas(bot, update, message_id=None, chat_id=None):
     message = update.message
     res = demi_utils.get_who_pipas()
-    bot.send_message(message.chat.id, res, parse_mode='Markdown')
+    keyboard = [[InlineKeyboardButton("Actualizar", callback_data='PIPAS_UPDATE')]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    if message_id and chat_id:
+        bot.edit_message_text(text=res, chat_id=chat_id, message_id=message_id, reply_markup=reply_markup,
+                              parse_mode='Markdown')
+    else:
+        bot.send_message(message.chat.id, res, reply_markup=reply_markup, parse_mode='Markdown')
 
 
 def recover_pipas(bot, update):

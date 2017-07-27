@@ -179,6 +179,7 @@ def send_nuke(bot, update):
             con.commit()
             con.close()
 
+
 @run_async
 def send_perros(bot, update):
     message = update.message
@@ -285,10 +286,12 @@ def headshot(bot, update):
             cur.execute('UPDATE Ranking SET Points = Points - %s WHERE UserId = %s',
                         (str(HEADSHOT), str(user_id)))
 
-        bot.send_document(group_id, gif1, reply_to_message_id=message.message_id,
-                          reply_markup=ReplyKeyboardRemove(selective=True))
         if message.chat.type == 'private':
             bot.send_document(user_id, gif2, reply_to_message_id=message.message_id,
+                              reply_markup=ReplyKeyboardRemove(selective=True))
+            bot.send_document(group_id, gif1)
+        else:
+            bot.send_document(group_id, gif1, reply_to_message_id=message.message_id,
                               reply_markup=ReplyKeyboardRemove(selective=True))
         if not isinstance(gif1, str):
             gif1.close()
