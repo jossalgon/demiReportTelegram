@@ -168,7 +168,7 @@ def recover_pipas(bot, update):
                      InlineKeyboardButton("No", callback_data='1_%s' % event_id)]]
 
         vote = demi_utils.get_vote(event_id, user_id)
-        if vote is not None:
+        if vote != '':
             selected = ("Sí" if vote == 0 else "No")
             keyboard[0][vote].text = '[%s]' % selected
             text = "Has elegido: %s" % selected
