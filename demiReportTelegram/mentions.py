@@ -7,6 +7,7 @@ import re
 
 import pymysql
 from reportTelegram import utils
+from teamSpeakTelegram import utils as utils_teamspeak
 
 from demiReportTelegram import utils as demi_utils
 from demiReportTelegram import variables
@@ -92,6 +93,9 @@ def callback_query_handler(bot, update, user_data, job_queue):
             bot.answer_callback_query(update.callback_query.id, 'Actualizado correctamente')
     elif query_data.startswith('MENTION'):
         post_mention_control(bot, update, user_data, job_queue)
+
+    elif query_data.startswith('TS_UPDATE'):
+        utils_teamspeak.callback_query_handler(bot, update)
     else:
         pipas_selected(bot, update, user_data, job_queue)
 
