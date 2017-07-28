@@ -195,13 +195,18 @@ def add_participant_event(event_id, user_id, selected):
 def get_who_pipas():
     res = '🌳 Quedadas'
     events = get_events()
-    for event in events:
-        option_1 = get_participants_event(event)[0]
-        option_2 = get_participants_event(event)[1]
+    if len(events) == 0:
+        res += '\n\n😢 De momento no hay ningún plan' \
+               '\n\nRecuerda que puedes crear uno poniendo @pipas seguido del plan. Ejemplo: @pipas parque a las 11'
+    else:
+        for event in events:
+            option_1 = get_participants_event(event)[0]
+            option_2 = get_participants_event(event)[1]
+            event_name = get_event_text(event)
 
-        res += '\n\n %s' % get_event_text(event)
-        res += '\n✔️ Sí (%i): %s' % (len(option_1), ', '.join(option_1))
-        res += '\n❌ No (%i): %s' % (len(option_2), ', '.join(option_2))
+            res += '\n\n %s' % (event_name if event_name != '' else 'Parque pipas')
+            res += '\n✔️ Sí (%i): %s' % (len(option_1), ', '.join(option_1))
+            res += '\n❌ No (%i): %s' % (len(option_2), ', '.join(option_2))
 
     return res
 

@@ -111,9 +111,7 @@ def pipas_selected(bot, update, user_data, job_queue):
         return False
 
     if int(event_id) not in demi_utils.get_events():
-        bot.edit_message_text(text="Quedada terminada",
-                              chat_id=query.message.chat_id,
-                              message_id=query.message.message_id)
+        bot.answer_callback_query(query.id, 'Quedada terminada')
         return False
 
     if query_selected == 0:
