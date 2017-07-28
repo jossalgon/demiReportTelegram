@@ -315,6 +315,7 @@ def main():
     dp.add_handler(CommandHandler('purge', general.purger, filter_is_from_group))
     dp.add_handler(CommandHandler('demigrante', general.send_demigrante, filter_is_from_group))
     dp.add_handler(CommandHandler('shh', general.send_shh, filter_is_from_group))
+    dp.add_handler(CommandHandler('ninoninini', general.send_ninoninini, filter_is_from_group))
     dp.add_handler(CommandHandler('alerta', general.send_alerta, filter_is_from_group))
     dp.add_handler(CommandHandler('tq', general.send_tq, filter_is_from_group))
     dp.add_handler(CommandHandler('disculpa', general.send_disculpa, filter_is_from_group))
