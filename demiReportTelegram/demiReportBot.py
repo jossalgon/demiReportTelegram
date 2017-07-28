@@ -153,7 +153,7 @@ def ranking(bot, update):
 
 
 def filter_pole_reward(msg):
-    return msg.chat.type == 'private' and bool(msg.photo) \
+    return Filters.private(msg) and Filters.photo(msg) \
            and variables.poles \
            and int(msg.from_user.id) == variables.poles[0] \
            and datetime.today().weekday() == 5 \
@@ -161,7 +161,7 @@ def filter_pole_reward(msg):
 
 
 def filter_group_name_reward(msg):
-    return msg.chat.type == 'private' and msg.text[0] != '/' \
+    return Filters.private(msg) and Filters.text(msg) and not Filters.command(msg) \
            and variables.poles \
            and (int(msg.from_user.id) == variables.poles[1] or int(msg.from_user.id) == variables.poles[2]) \
            and datetime.today().weekday() == 5
