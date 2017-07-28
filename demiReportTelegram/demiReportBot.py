@@ -42,9 +42,9 @@ def welcome_to_member(bot, update):
     try:
         user_id = message.new_chat_members[0].id
         sti = io.BufferedReader(io.BytesIO(pkgutil.get_data('demiReportTelegram', 'data/stickers/nancy_ok.webp')))
-        bot.send_sticker(variables.group_id, sti)
+        bot.send_sticker(message.chat_id, sti)
         sti.close()
-        if not utils.is_from_group(user_id):
+        if message.chat_id == group_id and not utils.is_from_group(user_id):
             variables.add_new_member(user_id)
             bot.send_message(variables.admin_id, user_id)
     except:
@@ -289,7 +289,7 @@ def main():
     dp.add_handler(MessageHandler(Filters.entity(MessageEntity.MENTION) & not_forwarded, mention_handler))
     dp.add_handler(RegexHandler(r'(?i).*hipertextual.com|.*twitter\.com\/Hipertextual', hipermierda))
     dp.add_handler(RegexHandler(r'(?i)(?=.*es)(?=.*raulito)(?=.*oro)?', raulito_oro))
-    dp.add_handler(RegexHandler(r'(?i).*y no [\w ]+ a selu\?', send_selu_sticker))
+    dp.add_handler(RegexHandler(r'(?i).*y no [\w ]+ a[l]? selu\?.*', send_selu_sticker))
     dp.add_handler(InlineQueryHandler(inline_query))
     dp.add_handler(ChosenInlineResultHandler(inline_result, pass_user_data=True, pass_job_queue=True))
     dp.add_handler(RegexHandler(r'(?i)po+le+.*', pole_handler))
