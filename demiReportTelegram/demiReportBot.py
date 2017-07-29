@@ -297,7 +297,7 @@ def main():
     dp.add_handler(RegexHandler(r'(?i).*hipertextual.com|.*twitter\.com\/Hipertextual', hipermierda))
     dp.add_handler(RegexHandler(r'(?i)(?=.*es)(?=.*raulito)(?=.*oro)?', raulito_oro))
     dp.add_handler(RegexHandler(r'(?i).*y no [\w ]+ a[l]? selu\?.*', send_selu_sticker))
-    dp.add_handler(RegexHandler(r'(?i).*bot.*', bot_ia))
+    dp.add_handler(RegexHandler(r'(?i)bot\s|.*\sbot|\sbot\s', bot_ia))
     dp.add_handler(InlineQueryHandler(inline_query))
     dp.add_handler(ChosenInlineResultHandler(inline_result, pass_user_data=True, pass_job_queue=True))
     dp.add_handler(RegexHandler(r'(?i)po+le+.*', pole_handler))
