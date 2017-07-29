@@ -217,6 +217,12 @@ def talk(bot, update, args):
         bot.send_message(group_id, text, parse_mode='Markdown')
 
 
+def bot_ia(bot, update):
+    message = update.message
+    res = demi_utils.get_bot_ia(message.text)
+    bot.send_message(message.chat_id, res, reply_to_message_id=message.message_id, parse_mode='Markdown')
+
+
 def gett(bot, update, job_queue):
     message = update.message
     bot.sendMessage(chat_id=message.chat_id, text=str(job_queue.queue.queue), reply_to_message_id=message.message_id)
@@ -291,6 +297,7 @@ def main():
     dp.add_handler(RegexHandler(r'(?i).*hipertextual.com|.*twitter\.com\/Hipertextual', hipermierda))
     dp.add_handler(RegexHandler(r'(?i)(?=.*es)(?=.*raulito)(?=.*oro)?', raulito_oro))
     dp.add_handler(RegexHandler(r'(?i).*y no [\w ]+ a[l]? selu\?.*', send_selu_sticker))
+    dp.add_handler(RegexHandler(r'(?i).*bot.*', bot_ia))
     dp.add_handler(InlineQueryHandler(inline_query))
     dp.add_handler(ChosenInlineResultHandler(inline_result, pass_user_data=True, pass_job_queue=True))
     dp.add_handler(RegexHandler(r'(?i)po+le+.*', pole_handler))

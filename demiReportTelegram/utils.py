@@ -1,9 +1,9 @@
 import datetime
 import os
 import time
-
 import logging
 import pymysql
+from cleverwrap import CleverWrap
 
 from reportTelegram import utils as report_utils
 
@@ -20,6 +20,15 @@ DB_NAME = variables.DB_NAME
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 logger = logging.getLogger(__name__)
+cw = CleverWrap(variables.CLEVERBOT_KEY)
+
+
+def get_bot_ia(question):
+    try:
+        return cw.say(question)
+    except Exception:
+        logger.error('Fatal error in get_bot_ia', exc_info=True)
+        return "Creo que se me acabaron las pastis, que no cunda el pánico, avisa a selui"
 
 
 def get_user_ids():

@@ -17,6 +17,8 @@ DB_USER = config['Database']['DB_USER']
 DB_PASS = config['Database']['DB_PASS']
 DB_NAME = config['Database']['DB_NAME']
 
+CLEVERBOT_KEY = config['Token']['CLEVERBOT_KEY']
+
 nuke = 30
 perros = 20
 HEADSHOT = 7
