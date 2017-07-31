@@ -14,6 +14,7 @@ from teamSpeakTelegram import utils as utils_teamspeak
 from telegram import MessageEntity, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, RegexHandler, InlineQueryHandler, \
     ChosenInlineResultHandler, ConversationHandler, CallbackQueryHandler
+from telegram.ext.dispatcher import run_async
 
 from demiReportTelegram import adults, general, mentions, poles, variables, songs
 from demiReportTelegram import utils as demi_utils
@@ -217,6 +218,7 @@ def talk(bot, update, args):
         bot.send_message(group_id, text, parse_mode='Markdown')
 
 
+@run_async
 def bot_ia(bot, update):
     message = update.message
     res = demi_utils.get_bot_ia(message.text)
