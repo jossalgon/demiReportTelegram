@@ -83,7 +83,7 @@ def mention_handler(bot, message):
                 bot.send_message(user_id, '¿Sales?‎', reply_markup=reply_markup, reply_to_message_id=msg.message_id)
 
 
-def callback_query_handler(bot, update, user_data, job_queue):
+def callback_query_handler(bot, update, user_data, job_queue, chat_data):
     query_data = update.callback_query.data
     if query_data.startswith('PIPAS_UPDATE'):
         if demi_utils.get_who_pipas() == update.effective_message.text:
@@ -94,8 +94,8 @@ def callback_query_handler(bot, update, user_data, job_queue):
     elif query_data.startswith('MENTION'):
         post_mention_control(bot, update, user_data, job_queue)
 
-    elif query_data.startswith('TS_UPDATE'):
-        utils_teamspeak.callback_query_handler(bot, update)
+    elif query_data.startswith('TS_UPDATE') or query_data.startswith('USER'):
+        utils_teamspeak.callback_query_handler(bot, update, chat_data)
     else:
         pipas_selected(bot, update, user_data, job_queue)
 

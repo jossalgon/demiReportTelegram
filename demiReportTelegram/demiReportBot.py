@@ -332,7 +332,8 @@ def main():
     dp.add_handler(CommandHandler('locura', general.send_locura, filter_is_from_group))
     dp.add_handler(CommandHandler('mecagoenlamadrequemepario', general.send_gritopokemon, filter_is_from_group))
     dp.add_handler(CommandHandler('gett', gett, Filters.user(user_id=admin_id), pass_job_queue=True))
-    dp.add_handler(CallbackQueryHandler(mentions.callback_query_handler, pass_user_data=True, pass_job_queue=True))
+    dp.add_handler(CallbackQueryHandler(mentions.callback_query_handler, pass_user_data=True, pass_job_queue=True,
+                                        pass_chat_data=True))
     dp.add_handler(CommandHandler('pipas', mentions.who_pipas, filter_is_from_group))
     dp.add_handler(CommandHandler('repipas', mentions.recover_pipas, filter_is_from_group))
     dp.add_handler(CommandHandler('mention', mentions.mention_control, filter_is_from_group))
