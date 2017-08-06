@@ -86,7 +86,7 @@ def mention_handler(bot, message):
 def callback_query_handler(bot, update, user_data, job_queue, chat_data):
     query_data = update.callback_query.data
     if query_data.startswith('PIPAS_UPDATE'):
-        if demi_utils.get_who_pipas() == update.effective_message.text:
+        if demi_utils.get_who_pipas().strip() == update.effective_message.text_markdown:
             bot.answer_callback_query(update.callback_query.id, 'Sin cambios')
         else:
             who_pipas(bot, update, message_id=update.effective_message.message_id, chat_id=update.effective_chat.id)
