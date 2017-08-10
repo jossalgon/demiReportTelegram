@@ -239,7 +239,10 @@ def get_who_pipas():
     events = get_events()
     if len(events) == 0:
         res += '\n\n😢 De momento no hay ningún plan' \
-               '\n\nRecuerda que puedes crear uno poniendo @pipas seguido del plan. Ejemplo: @pipas parque a las 11'
+               '\n\nRecuerda que puedes crear uno poniendo @pipas seguido del plan y si es necesaria una fecha. ' \
+               'La fecha debe ser futura con el formato "dd/mm/yyyy".' \
+               '\nEjemplo: "@pipas parque a las 11" o "@pipas cine el 01/10/2017"'
+
     else:
         for event in events:
             option_1 = get_participants_event(event)[0]
