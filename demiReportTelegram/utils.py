@@ -192,27 +192,31 @@ def is_long_event(event_id):
 def create_event(event_id, message_id, text):
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
     pipas_date_search = re.search(r'\d{1,2}/\d{1,2}/\d{4}', text)
-    if pipas_date_search:
-        pipas_date_text = pipas_date_search.group(0)
-        pipas_date = datetime.datetime.strptime(pipas_date_text, '%d/%m/%Y').date()
 
-        search_start, search_end = pipas_date_search.span()
-        text = text[:search_start] + '*' + pipas_date_text + '*' + text[search_end:]
+    try:
+        if pipas_date_search:
+            pipas_date_text = pipas_date_search.group(0)
+            pipas_date = datetime.datetime.strptime(pipas_date_text, '%d/%m/%Y').date()
 
-        if pipas_date < datetime.date.today():
-            return False
+            search_start, search_end = pipas_date_search.span()
+            text = text[:search_start] + '*' + pipas_date_text + '*' + text[search_end:]
+
+            if pipas_date < datetime.date.today():
+                return False
+            else:
+                pipas_date = str(pipas_date)
         else:
-            pipas_date = str(pipas_date)
-    else:
-        pipas_date = None
+            pipas_date = None
+    except ValueError:
+        return False
 
     try:
         with con.cursor() as cur:
             cur.execute("INSERT INTO Pipas VALUES(%s, %s, %s, %s)",
                         (str(event_id), str(message_id), str(text), pipas_date))
         return True
-    except Exception as exception:
-        print(exception)
+    except Exception:
+        logger.error('Fatal error in create_event', exc_info=True)
     finally:
         if con:
             con.commit()
