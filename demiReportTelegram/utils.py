@@ -1,5 +1,6 @@
 import datetime
 import os
+import re
 import time
 import logging
 import pymysql
@@ -173,11 +174,43 @@ def get_participants_event(event_id):
         return user_ids
 
 
-def create_event(event_id, message_id, text):
+def is_long_event(event_id):
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    res = ''
     try:
         with con.cursor() as cur:
-            cur.execute("INSERT INTO Pipas VALUES(%s, %s, %s)", (str(event_id), str(message_id), str(text)))
+            cur.execute('SELECT EXISTS(SELECT 1 FROM Pipas WHERE eventId=%s AND pipasDate IS NOT NULL)', (str(event_id),))
+            res = bool(cur.fetchone()[0])
+    except Exception as exception:
+        print(exception)
+    finally:
+        if con:
+            con.close()
+        return res
+
+
+def create_event(event_id, message_id, text):
+    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    pipas_date_search = re.search(r'\d{1,2}/\d{1,2}/\d{4}', text)
+    if pipas_date_search:
+        pipas_date_text = pipas_date_search.group(0)
+        pipas_date = datetime.datetime.strptime(pipas_date_text, '%d/%m/%Y').date()
+
+        search_start, search_end = pipas_date_search.span()
+        text = text[:search_start] + '*' + pipas_date_text + '*' + text[search_end:]
+
+        if pipas_date < datetime.date.today():
+            return False
+        else:
+            pipas_date = str(pipas_date)
+    else:
+        pipas_date = None
+
+    try:
+        with con.cursor() as cur:
+            cur.execute("INSERT INTO Pipas VALUES(%s, %s, %s, %s)",
+                        (str(event_id), str(message_id), str(text), pipas_date))
+        return True
     except Exception as exception:
         print(exception)
     finally:
@@ -213,7 +246,7 @@ def get_who_pipas():
             option_2 = get_participants_event(event)[1]
             event_name = get_event_text(event)
 
-            res += '\n\n %s' % (event_name if event_name != '' else 'Parque pipas')
+            res += '\n\n%s' % (event_name if event_name != '' else 'Parque pipas')
             res += '\n✔️ Sí (%i): %s' % (len(option_1), ', '.join(option_1))
             res += '\n❌ No (%i): %s' % (len(option_2), ', '.join(option_2))
 
@@ -299,6 +332,7 @@ def create_database():
                   `eventId` BIGINT(30) NOT NULL, \
                   `messageId` BIGINT(30) NOT NULL, \
                   `text` TEXT NOT NULL, \
+                  `pipasDate` DATE, \
                   PRIMARY KEY (eventId) \
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; \
                 CREATE TABLE IF NOT EXISTS `PipasVotes` ( \

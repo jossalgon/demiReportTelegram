@@ -49,8 +49,9 @@ def clean_poles(bot, job):
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
     try:
         with con.cursor() as cur:
-            cur.execute("DELETE FROM PipasVotes")
-            cur.execute("DELETE FROM Pipas")
+            cur.execute("DELETE FROM PipasVotes WHERE eventId IN (SELECT eventId FROM Pipas WHERE pipasDate is NULL \
+                         OR pipasDate <= CURDATE())")
+            cur.execute("DELETE FROM Pipas WHERE pipasDate is NULL OR Pipas.pipasDate <= CURDATE()")
     except Exception as exception:
         print(exception)
     finally:

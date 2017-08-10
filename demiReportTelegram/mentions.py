@@ -71,16 +71,19 @@ def mention_handler(bot, message):
                 bot.forward_message(user_id, group_id, message.message_id)
     if bool(re.match(r'(?i).*@pipas.*', message.text)):
         event_id = str(message.message_id)
-        text = re.subn(r'(?i) ?@pipas ?', '', message.text)[0].capitalize()
-        demi_utils.create_event(event_id=event_id, message_id=message.message_id, text=text)
-
-        keyboard = [[InlineKeyboardButton("Sí", callback_data='0_%s' % event_id),
-                     InlineKeyboardButton("No", callback_data='1_%s' % event_id)]]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        for user_id in user_ids:
-            if user_id not in silent_pipas:
-                msg = bot.forward_message(user_id, group_id, message.message_id, reply_markup=reply_markup)
-                bot.send_message(user_id, '¿Sales?‎', reply_markup=reply_markup, reply_to_message_id=msg.message_id)
+        text = re.sub(r'(?i) ?@pipas ?', '', message.text).capitalize()
+        created = demi_utils.create_event(event_id=event_id, message_id=message.message_id, text=text)
+        if created:
+            keyboard = [[InlineKeyboardButton("Sí", callback_data='0_%s' % event_id),
+                         InlineKeyboardButton("No", callback_data='1_%s' % event_id)]]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            for user_id in user_ids:
+                if user_id not in silent_pipas:
+                    msg = bot.forward_message(user_id, group_id, message.message_id, reply_markup=reply_markup)
+                    bot.send_message(user_id, '¿Sales?‎', reply_markup=reply_markup, reply_to_message_id=msg.message_id)
+        else:
+            message.reply_text('No se creó el evento, asegurate que sea la *fecha* sea *futura* y \
+                               sigues el formato *dd/mm/yyyy*', parse_mode='Markdown')
 
 
 def callback_query_handler(bot, update, user_data, job_queue, chat_data):
