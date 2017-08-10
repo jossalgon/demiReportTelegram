@@ -219,6 +219,18 @@ def talk(bot, update, args):
 
 
 @run_async
+def notify(bot, update, args):
+    text = ' '.join(args)
+    text = text.replace('\\n', '\n')
+    if text:
+        for user_id in demi_utils.get_user_ids():
+            try:
+                bot.send_message(user_id, text, parse_mode='Markdown')
+            except:
+                pass
+
+
+@run_async
 def bot_ia(bot, update):
     message = update.message
     res = demi_utils.get_bot_ia(message.text)
@@ -322,6 +334,7 @@ def main():
         CommandHandler('addsubpole', add_subpole, Filters.user(user_id=admin_id), pass_args=True))
     dp.add_handler(CommandHandler('cleanpoles', clean_poles, Filters.user(user_id=admin_id)))
     dp.add_handler(CommandHandler('talk', talk, Filters.user(user_id=admin_id), pass_args=True))
+    dp.add_handler(CommandHandler('notify', notify, Filters.user(user_id=admin_id), pass_args=True))
     dp.add_handler(CommandHandler('purge', general.purger, filter_is_from_group))
     dp.add_handler(CommandHandler('demigrante', general.send_demigrante, filter_is_from_group))
     dp.add_handler(CommandHandler('shh', general.send_shh, filter_is_from_group))
