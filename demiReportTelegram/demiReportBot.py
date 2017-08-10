@@ -4,7 +4,7 @@ import configparser
 import io
 import logging
 import time
-from datetime import datetime
+import datetime
 import pkgutil
 
 from reportTelegram import reportBot, utils
@@ -157,7 +157,7 @@ def filter_pole_reward(msg):
     return Filters.private(msg) and Filters.photo(msg) \
            and variables.poles \
            and int(msg.from_user.id) == variables.poles[0] \
-           and datetime.today().weekday() == 5 \
+           and datetime.datetime.today().weekday() == 5 \
            and photo_ok
 
 
@@ -165,7 +165,7 @@ def filter_group_name_reward(msg):
     return Filters.private(msg) and Filters.text(msg) and not Filters.command(msg) \
            and variables.poles \
            and (int(msg.from_user.id) == variables.poles[1] or int(msg.from_user.id) == variables.poles[2]) \
-           and datetime.today().weekday() == 5
+           and datetime.datetime.today().weekday() == 5
 
 
 # +18
@@ -283,6 +283,19 @@ def not_forwarded(msg):
     return not bool(msg.forward_date)
 
 
+def pole_timer(job_queue):
+    x = datetime.datetime.today()
+    y = x.replace(day=x.day, hour=23, minute=59, second=55, microsecond=0)
+    y2 = x.replace(day=x.day, hour=1, minute=00, second=00, microsecond=0) + datetime.timedelta(days=1)
+    delta_t = y - x
+    delta_t2 = y2 - x
+    secs = delta_t.seconds + 1
+    secs2 = delta_t2.seconds + 1
+    job_queue.run_daily(callback=demi_utils.pole_counter, time=secs)
+    job_queue.run_daily(callback=poles.run_daily_perros, time=secs-10)
+    job_queue.run_daily(callback=variables.clean_poles, time=secs2)
+
+
 def main():
     utils_teamspeak.create_database()
     utils.create_database()
@@ -292,7 +305,7 @@ def main():
     dp = updater.dispatcher
     report_variables.user_data_dict = dp.user_data
 
-    demi_utils.pole_timer(updater.job_queue)
+    pole_timer(updater.job_queue)
 
     dp.add_handler(CommandHandler('start', start))
     dp.add_handler(CommandHandler('stats', reportBot.stats, filter_is_from_group))

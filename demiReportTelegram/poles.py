@@ -7,6 +7,7 @@ from telegram import ReplyKeyboardMarkup
 from telegram import ReplyKeyboardRemove
 from telegram.ext import ConversationHandler
 from telegram.ext.dispatcher import run_async
+from telegram.error import TimedOut
 import datetime
 import logging
 import os
@@ -25,8 +26,8 @@ from demiReportTelegram import variables
 
 admin_id = variables.admin_id
 group_id = variables.group_id
-perros = variables.perros
-nuke = variables.nuke
+PERROS = variables.perros
+NUKE = variables.nuke
 HEADSHOT = variables.HEADSHOT
 MUTE = variables.MUTE
 
@@ -134,7 +135,7 @@ def get_ranking():
             for row, pos in zip(rows[1:], range(2, len(rows)+1)):
                 top += '%dº - %s (%d ptos)\n' % (pos, utils.get_name(row[0]), row[1])
             top += '\n🤐 Mute por %d ptos.\n🎯 Headshot por %d ptos.\n🐺 Perros por %d ptos.\n☢ Nuke por %d ptos.' % \
-                   (MUTE, HEADSHOT, perros, nuke)
+                   (MUTE, HEADSHOT, PERROS, NUKE)
             return top
     except Exception:
         logger.error('Fatal error in get_ranking', exc_info=True)
@@ -152,8 +153,8 @@ def send_nuke(bot, update):
         with con.cursor() as cur:
             cur.execute('SELECT Points FROM Ranking WHERE UserId = %s', (str(user_id),))
             user_points = cur.fetchone()[0]
-            if user_points >= nuke:
-                cur.execute('UPDATE Ranking SET Points = Points - %s WHERE UserId = %s', (str(nuke), str(user_id)))
+            if user_points >= NUKE:
+                cur.execute('UPDATE Ranking SET Points = Points - %s WHERE UserId = %s', (str(NUKE), str(user_id)))
                 bot.send_document(group_id, 'http://imgur.com/vZDxkFk.gif')
                 audio = open(os.path.join(os.path.dirname(sys.modules['demiReportTelegram'].__file__), 'data/voices/nuke.ogg'),
                              'rb')
@@ -170,7 +171,7 @@ def send_nuke(bot, update):
                 cuenta_all(bot, user_ids)
             else:
                 bot.send_message(message.chat_id,
-                                 'No tienes puntos suficientes, te faltan %d ptos.' % (nuke - user_points),
+                                 'No tienes puntos suficientes, te faltan %d ptos.' % (NUKE - user_points),
                                  reply_to_message_id=message.message_id)
     except Exception:
         logger.error('Fatal error in send_nuke', exc_info=True)
@@ -189,21 +190,13 @@ def send_perros(bot, update):
         with con.cursor() as cur:
             cur.execute('SELECT Points FROM Ranking WHERE UserId = %s', (str(user_id),))
             user_points = cur.fetchone()[0]
-            if user_points >= perros:
+            if user_points >= PERROS:
                 cur.execute('UPDATE Ranking SET Points = Points - %s WHERE UserId = %s',
-                            (str(perros), str(user_id)))
-                bot.send_document(group_id, 'http://imgur.com/buULxjj.gif')
-                bot.send_message(message.chat_id, 'ORDEN RECIBIDA lanzando perros',
-                                 reply_to_message_id=message.message_id)
-                msg = bot.send_message(group_id, 'perros EN *5 SEG.*', parse_mode='Markdown')
-                for i in range(4, -1, -1):
-                    time.sleep(1)
-                    text = 'perros EN *%d SEG.*' % i
-                    bot.edit_message_text(text, chat_id=group_id, message_id=msg.message_id, parse_mode='Markdown')
-                cuenta_perros(bot, user_id)
+                            (str(PERROS), str(user_id)))
+                cuenta_perros(bot, user_id, message)
             else:
                 bot.send_message(message.chat_id,
-                                 'No tienes puntos suficientes, te faltan %d ptos.' % (perros - user_points),
+                                 'No tienes puntos suficientes, te faltan %d ptos.' % (PERROS - user_points),
                                  reply_to_message_id=message.message_id)
     except Exception:
         logger.error('Fatal error in send_perros', exc_info=True)
@@ -213,10 +206,30 @@ def send_perros(bot, update):
             con.close()
 
 
-def cuenta_perros(bot, user_id):
+@run_async
+def cuenta_perros(bot, user_id=None, message=None):
+    bot.send_document(group_id, 'http://imgur.com/buULxjj.gif')
+    if message:
+        bot.send_message(message.chat_id, 'ORDEN RECIBIDA lanzando perros',
+                         reply_to_message_id=message.message_id)
+    msg = bot.send_message(group_id, 'perros EN *5 SEG.*', parse_mode='Markdown')
+    time.sleep(1)
+    for i in range(4, -1, -1):
+        text = 'perros EN *%d SEG.*' % i
+        try:
+            bot.edit_message_text(text, chat_id=group_id, message_id=msg.message_id, parse_mode='Markdown')
+            time.sleep(1)
+        except TimedOut:
+            pass
+    perros(bot, user_id)
+
+
+@run_async
+def perros(bot, user_id=None):
     targets = list()
     user_ids = [user_id for user_id in demi_utils.get_user_ids() if bot.get_chat_member(group_id, user_id).status != 'kicked']
-    user_ids.remove(user_id)
+    if user_id:
+        user_ids.remove(user_id)
     if len(user_ids) >= 5:
         samples = random.sample(range(len(user_ids)), 5)
         for t in samples:
@@ -311,13 +324,13 @@ def headshot(bot, update):
 def cuenta_all(bot, user_ids):
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
     for user_id in user_ids:
+        chat_member = bot.get_chat_member(group_id, user_id)
         user_data = report_variables.user_data_dict[user_id]
         try:
-            if 'ban_time' in user_data and user_data['ban_time'] > 0 \
-                    and bot.get_chat_member(group_id, user_id).status == 'kicked':
-                user_data['ban_time'] += reports.variables.ban_time
-            else:
-                user_data['ban_time'] = reports.variables.ban_time
+            user_data['ban_time'] = reports.variables.ban_time
+            if chat_member.status == 'kicked':
+                if 'ban_time' in user_data and user_data['ban_time'] > 0 and chat_member.until_date is not None:
+                    user_data['ban_time'] = chat_member.until_date.timestamp()-time.time()+reports.variables.ban_time
 
             sti = io.BufferedReader(io.BytesIO(pkgutil.get_data('reportTelegram', 'data/stickers/%s.webp' % reports.variables.sticker)))
             bot.send_sticker(user_id, sti)
@@ -325,7 +338,7 @@ def cuenta_all(bot, user_ids):
             m, s = divmod(user_data['ban_time'], 60)
             text = 'Expulsado durante %02d:%02d minutos\n\n⚠️Esto no es un **** contador⚠' % (m, s)
             bot.send_message(user_id, text)
-            bot.kick_chat_member(group_id, user_id, time.time()+user_data['ban_time'])
+            bot.kick_chat_member(group_id, user_id, until_date=time.time()+user_data['ban_time'])
         except:
             logger.error('Fatal error in cuenta_all kicks', exc_info=True)
     time.sleep(reports.variables.ban_time)
@@ -472,3 +485,8 @@ def change_group_name_bot(bot, update):
         if con:
             con.commit()
             con.close()
+
+
+def run_daily_perros(bot, job):
+    if random.random() < 0.1:
+        cuenta_perros(bot)

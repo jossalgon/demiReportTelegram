@@ -5,9 +5,9 @@ import time
 import logging
 import pymysql
 from cleverwrap import CleverWrap
+from telegram.ext.dispatcher import run_async
 
 from reportTelegram import utils as report_utils
-
 from demiReportTelegram import variables
 
 ADMIN_ID = variables.admin_id
@@ -358,6 +358,7 @@ def create_database():
             con.close()
 
 
+@run_async
 def pole_counter(bot, job):
     text = time.strftime('%H:%M:*%S*')
     msg = bot.send_message(GROUP_ID, text, parse_mode='Markdown')
@@ -368,18 +369,6 @@ def pole_counter(bot, job):
             text = time.strftime('%H:%M:*%S*')
             bot.edit_message_text(text, chat_id=GROUP_ID, message_id=msg.message_id, parse_mode='Markdown')
         time.sleep(0.5)
-
-
-def pole_timer(job_queue):
-    x = datetime.datetime.today()
-    y = x.replace(day=x.day, hour=23, minute=59, second=55, microsecond=0)
-    y2 = x.replace(day=x.day, hour=1, minute=00, second=00, microsecond=0) + datetime.timedelta(days=1)
-    delta_t = y - x
-    delta_t2 = y2 - x
-    secs = delta_t.seconds + 1
-    secs2 = delta_t2.seconds + 1
-    job_queue.run_daily(callback=pole_counter, time=secs)
-    job_queue.run_daily(callback=variables.clean_poles, time=secs2)
 
 
 def flooder(user_data, job_queue):
