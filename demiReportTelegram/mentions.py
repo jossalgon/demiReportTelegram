@@ -6,7 +6,7 @@ import logging
 import re
 
 import pymysql
-from reportTelegram import utils
+from reportTelegram import utils, reports
 from teamSpeakTelegram import utils as utils_teamspeak
 
 from demiReportTelegram import utils as demi_utils
@@ -97,8 +97,10 @@ def callback_query_handler(bot, update, user_data, job_queue, chat_data):
     elif query_data.startswith('MENTION'):
         post_mention_control(bot, update, user_data, job_queue)
 
-    elif query_data.startswith('TS_UPDATE') or query_data.startswith('USER'):
+    elif query_data.startswith('TS_UPDATE') or query_data.startswith('USER') or query_data.startswith('GROUP'):
         utils_teamspeak.callback_query_handler(bot, update, chat_data)
+    elif query_data.startswith('STATS_UPDATE'):
+        reports.callback_query_handler(bot, update, user_data, job_queue, chat_data)
     else:
         pipas_selected(bot, update, user_data, job_queue)
 

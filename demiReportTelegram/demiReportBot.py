@@ -7,7 +7,7 @@ import time
 import datetime
 import pkgutil
 
-from reportTelegram import reportBot, utils
+from reportTelegram import reportBot, utils, reports
 from reportTelegram import variables as report_variables
 from teamSpeakTelegram import teamspeak
 from teamSpeakTelegram import utils as utils_teamspeak
@@ -301,7 +301,7 @@ def main():
     pole_timer(updater.job_queue)
 
     dp.add_handler(CommandHandler('start', start))
-    dp.add_handler(CommandHandler('stats', reportBot.stats, filter_is_from_group))
+    dp.add_handler(CommandHandler('stats', reports.send_stats, filter_is_from_group))
     dp.add_handler(CommandHandler('expulsados', reportBot.top_kicks, filter_is_from_group))
     dp.add_handler(CommandHandler('who', reportBot.who, filter_is_from_group))
     dp.add_handler(CommandHandler('reports', reportBot.set_reports, filter_is_from_group, pass_args=True))
