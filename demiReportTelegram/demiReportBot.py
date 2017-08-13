@@ -264,6 +264,18 @@ def pin(bot, update):
         bot.pinChatMessage(chat_id=group_id, message_id=message.message_id, disable_notification=True)
 
 
+def safe_report(bot, update):
+    message = update.message
+    user_id = message.from_user.id
+    command = message.text.split('@')[0].split(' ')[0]
+    name = command.replace('/', '').capitalize()
+    reported = utils.get_user_id(name)
+    if reported == user_id:
+        bot.delete_message(chat_id=message.chat_id, message_id=message.message_id)
+    else:
+        reports.send_report(bot, user_id, reported)
+
+
 def log_error(bot, update, error):
     logger.warning('Update "%s" caused error "%s"' % (update, error))
 
@@ -357,7 +369,7 @@ def main():
     dp.add_handler(CommandHandler('mention', mentions.mention_control, filter_is_from_group))
 
     for name in utils.get_names():
-        dp.add_handler(CommandHandler(name.lower(), reportBot.report, Filters.chat(chat_id=group_id)))
+        dp.add_handler(CommandHandler(name.lower(), safe_report, Filters.chat(chat_id=group_id)))
 
     headshot_handler = ConversationHandler(
         entry_points=[CommandHandler('headshot', poles.pre_headshot, filter_is_from_group)],
