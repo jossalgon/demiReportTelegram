@@ -5,3 +5,4 @@ pymysql
 cleverwrap
 reportTelegram
 teamSpeakTelegram
+mcstatus

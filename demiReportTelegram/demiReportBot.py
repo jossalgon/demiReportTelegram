@@ -15,9 +15,11 @@ from telegram import MessageEntity, InlineKeyboardMarkup, InlineKeyboardButton, 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, RegexHandler, InlineQueryHandler, \
     ChosenInlineResultHandler, ConversationHandler, CallbackQueryHandler
 from telegram.ext.dispatcher import run_async
+from mcstatus import MinecraftServer
 
 from demiReportTelegram import adults, general, mentions, poles, variables, songs
 from demiReportTelegram import utils as demi_utils
+
 
 admin_id = variables.admin_id
 group_id = variables.group_id
@@ -276,6 +278,14 @@ def safe_report(bot, update):
         reports.send_report(bot, user_id, reported)
 
 
+def who_minecraft(bot, update):
+    message = update.message
+    server = MinecraftServer.lookup(variables.minecraft_ip)
+    query = server.query()
+    text = "👁‍🗨 Conectados:\n   ▫️ {0}".format("\n   ▫️ ".join(query.players.names))
+    bot.send_message(message.chat_id, text, reply_to_message_id=message.message_id)
+
+
 def log_error(bot, update, error):
     logger.warning('Update "%s" caused error "%s"' % (update, error))
 
@@ -367,6 +377,7 @@ def main():
     dp.add_handler(CommandHandler('pipas', mentions.who_pipas, filter_is_from_group))
     dp.add_handler(CommandHandler('repipas', mentions.recover_pipas, filter_is_from_group))
     dp.add_handler(CommandHandler('mention', mentions.mention_control, filter_is_from_group))
+    dp.add_handler(CommandHandler('minecraft', who_minecraft, filter_is_from_group))
 
     for name in utils.get_names():
         dp.add_handler(CommandHandler(name.lower(), safe_report, Filters.chat(chat_id=group_id)))
