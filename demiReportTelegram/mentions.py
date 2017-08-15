@@ -4,8 +4,8 @@ from telegram import InlineKeyboardButton
 from telegram import InlineKeyboardMarkup
 import logging
 import re
-
 import pymysql
+
 from reportTelegram import utils, reports
 from teamSpeakTelegram import utils as utils_teamspeak
 
@@ -96,11 +96,17 @@ def callback_query_handler(bot, update, user_data, job_queue, chat_data):
             bot.answer_callback_query(update.callback_query.id, 'Actualizado correctamente')
     elif query_data.startswith('MENTION'):
         post_mention_control(bot, update, user_data, job_queue)
-
     elif query_data.startswith('TS_UPDATE') or query_data.startswith('USER') or query_data.startswith('GROUP'):
         utils_teamspeak.callback_query_handler(bot, update, chat_data)
     elif query_data.startswith('STATS_UPDATE'):
         reports.callback_query_handler(bot, update, user_data, job_queue, chat_data)
+    elif query_data.startswith('MINECRAFT_UPDATE'):
+        if demi_utils.get_who_minecraft().strip() == update.effective_message.text_markdown:
+            bot.answer_callback_query(update.callback_query.id, 'Sin cambios')
+        else:
+            demi_utils.send_who_minecraft(bot, update, message_id=update.effective_message.message_id,
+                                          chat_id=update.effective_chat.id)
+            bot.answer_callback_query(update.callback_query.id, 'Actualizado correctamente')
     else:
         pipas_selected(bot, update, user_data, job_queue)
 

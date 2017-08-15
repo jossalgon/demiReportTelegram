@@ -4,7 +4,10 @@ import re
 import time
 import logging
 import pymysql
-from cleverwrap import CleverWrap
+import socket
+from mcstatus import MinecraftServer
+from telegram import InlineKeyboardButton
+from telegram import InlineKeyboardMarkup
 from telegram.ext.dispatcher import run_async
 
 from reportTelegram import utils as report_utils
@@ -382,3 +385,36 @@ def run_flood_timer(user_data, job_queue):
         job.schedule_removal()
         del user_data['flood_job']
     user_data['flood_job'] = job_queue.run_once(clear_flooder, 10, context=user_data)
+
+
+def get_who_minecraft():
+    server = MinecraftServer.lookup(variables.minecraft_ip)
+    text = ""
+    try:
+        server.ping()
+        query = server.query()
+        if query.players.online > 0:
+            text = "⛏ *{0}* \[{1}/{2}]:\n   ▫️ {3}".format(query.map, query.players.online, query.players.max,
+                                                    "\n   ▫️ ".join(query.players.names))
+        else:
+            text = "⛏ No hay nadie en este momento"
+    except (socket.timeout, ConnectionRefusedError, AttributeError):
+        text = "🚫 Servidor no disponible"
+    finally:
+        return text
+
+
+def send_who_minecraft(bot, update, message_id=None, chat_id=None):
+    message = update.effective_message
+
+    res = get_who_minecraft()
+
+    keyboard = [[InlineKeyboardButton("Actualizar", callback_data='MINECRAFT_UPDATE')]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    if message_id and chat_id:
+        bot.edit_message_text(text=res, chat_id=chat_id, message_id=message_id, reply_markup=reply_markup,
+                              parse_mode='Markdown', reply_to_message_id=message.message_id)
+    else:
+        bot.send_message(message.chat.id, res, parse_mode='Markdown', reply_markup=reply_markup,
+                         reply_to_message_id=message.message_id)
