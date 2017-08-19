@@ -290,6 +290,11 @@ def is_silent_user(user_id, mention_type):
         return res
 
 
+def connect_account():
+    os.system("./../tg/bin/telegram-cli -W -e 'status_online'")
+    os.system("./../tg/bin/telegram-cli -W -e 'status_offline'")
+
+
 def change_group_photo():
     os.system("./../tg/bin/telegram-cli -W -e 'channel_set_photo channel#1060426760 photo.jpg'")
     os.system("./../tg/bin/telegram-cli -W -e 'status_offline'")
@@ -365,18 +370,18 @@ def pole_counter(bot, job):
         time.sleep(0.5)
 
 
-def flooder(user_data, job_queue):
-    if 'flood' in user_data and user_data['flood'] > 0:
-        user_data['flood'] -= 1
+def flooder(user_data, job_queue, num_messages=5):
+    if 'flood' in user_data and user_data['flood'] < num_messages:
+        user_data['flood'] += 1
         run_flood_timer(user_data, job_queue)
     elif 'flood' not in user_data:
-        user_data['flood'] = 5
-    return user_data['flood'] == 0
+        user_data['flood'] = 0
+    return user_data['flood'] == num_messages
 
 
 def clear_flooder(bot, job):
     user_data = job.context
-    user_data['flood'] = 5
+    user_data['flood'] = 0
 
 
 def run_flood_timer(user_data, job_queue):

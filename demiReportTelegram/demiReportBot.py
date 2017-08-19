@@ -302,6 +302,17 @@ def pole_timer(job_queue):
     job_queue.run_daily(callback=variables.clean_poles, time=secs2)
 
 
+class CommandHandlerFlood(CommandHandler):
+    def handle_update(self, update, dispatcher):
+        user_id = update.message.from_user.id
+        if user_id == 296066710 and update.message.chat.type != 'private' \
+                and demi_utils.flooder(dispatcher.user_data[user_id], dispatcher.job_queue, 2):
+            dispatcher.bot.restrict_chat_member(group_id, user_id, can_send_messages=False,
+                                                until_date=time.time() + variables.MUTE_TIME)
+
+        return super(CommandHandlerFlood, self).handle_update(update, dispatcher)
+
+
 def main():
     utils_teamspeak.create_database()
     utils.create_database()
@@ -313,18 +324,18 @@ def main():
 
     pole_timer(updater.job_queue)
 
-    dp.add_handler(CommandHandler('start', start))
-    dp.add_handler(CommandHandler('stats', reports.send_stats, filter_is_from_group))
-    dp.add_handler(CommandHandler('expulsados', reportBot.top_kicks, filter_is_from_group))
-    dp.add_handler(CommandHandler('who', reportBot.who, filter_is_from_group))
-    dp.add_handler(CommandHandler('reports', reportBot.set_reports, filter_is_from_group, pass_args=True))
+    dp.add_handler(CommandHandlerFlood('start', start))
+    dp.add_handler(CommandHandlerFlood('stats', reports.send_stats, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('expulsados', reportBot.top_kicks, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('who', reportBot.who, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('reports', reportBot.set_reports, filter_is_from_group, pass_args=True))
     dp.add_handler(CommandHandler('bantime', reportBot.set_ban_time, Filters.user(user_id=admin_id), pass_args=True))
     dp.add_handler(CommandHandler('mutetime', set_mute_time, Filters.user(user_id=admin_id), pass_args=True))
     dp.add_handler(MessageHandler(Filters.status_update.new_chat_members, welcome_to_member))
     dp.add_handler(CommandHandler('sipower', power_on, Filters.user(user_id=admin_id)))
     dp.add_handler(CommandHandler('nopower', power_off, Filters.user(user_id=admin_id)))
-    dp.add_handler(CommandHandler('ts', utils_teamspeak.ts_view, filter_is_from_group))
-    dp.add_handler(CommandHandler('whots', teamspeak.ts_stats, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('ts', utils_teamspeak.ts_view, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('whots', teamspeak.ts_stats, filter_is_from_group))
     dp.add_handler(CommandHandler('troll', set_troll, Filters.user(user_id=admin_id), pass_args=True))
     dp.add_handler(MessageHandler(Filters.entity(MessageEntity.MENTION) & not_forwarded, mention_handler))
     dp.add_handler(RegexHandler(r'(?i).*hipertextual.com|.*twitter\.com\/Hipertextual', hipermierda))
@@ -335,46 +346,47 @@ def main():
     dp.add_handler(RegexHandler(r'(?i)po+le+.*', pole_handler))
     dp.add_handler(RegexHandler(r'(?i)su+bpo+le+.*', subpole_handler))
     dp.add_handler(RegexHandler(r'(?i)tercer comentario+.*', tercercomentario_handler))
-    dp.add_handler(CommandHandler('ranking', ranking, filter_is_from_group))
-    dp.add_handler(CommandHandler('nuke', poles.send_nuke, filter_is_from_group))
-    dp.add_handler(CommandHandler('perros', poles.send_perros, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('ranking', ranking, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('nuke', poles.send_nuke, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('perros', poles.send_perros, filter_is_from_group))
     dp.add_handler(MessageHandler(filter_pole_reward, poles.change_group_photo_bot))
     dp.add_handler(MessageHandler(filter_group_name_reward, poles.change_group_name_bot))
     dp.add_handler(CommandHandler('no18', stop_18, Filters.user(user_id=admin_id)))
     dp.add_handler(CommandHandler('si18', start_18, Filters.user(user_id=admin_id)))
     dp.add_handler(CommandHandler('pin', pin, Filters.user(user_id=admin_id)))
     dp.add_handler(
-        CommandHandler('butts', adults.send_butts, lambda msg: variables.porn and filter_is_from_group))
+        CommandHandlerFlood('butts', adults.send_butts, lambda msg: variables.porn and filter_is_from_group))
     dp.add_handler(
-        CommandHandler('boobs', adults.send_boobs, lambda msg: variables.porn and filter_is_from_group))
+        CommandHandlerFlood('boobs', adults.send_boobs, lambda msg: variables.porn and filter_is_from_group))
     dp.add_handler(CommandHandler('addpole', add_pole, Filters.user(user_id=admin_id), pass_args=True))
     dp.add_handler(
         CommandHandler('addsubpole', add_subpole, Filters.user(user_id=admin_id), pass_args=True))
     dp.add_handler(CommandHandler('cleanpoles', clean_poles, Filters.user(user_id=admin_id)))
     dp.add_handler(CommandHandler('talk', talk, Filters.user(user_id=admin_id), pass_args=True))
     dp.add_handler(CommandHandler('notify', notify, Filters.user(user_id=admin_id), pass_args=True))
-    dp.add_handler(CommandHandler('purge', general.purger, filter_is_from_group))
-    dp.add_handler(CommandHandler('demigrante', general.send_demigrante, filter_is_from_group))
-    dp.add_handler(CommandHandler('shh', general.send_shh, filter_is_from_group))
-    dp.add_handler(CommandHandler('ninoninini', general.send_ninoninini, filter_is_from_group))
-    dp.add_handler(CommandHandler('alerta', general.send_alerta, filter_is_from_group))
-    dp.add_handler(CommandHandler('tq', general.send_tq, filter_is_from_group))
-    dp.add_handler(CommandHandler('disculpa', general.send_disculpa, filter_is_from_group))
-    dp.add_handler(CommandHandler('locura', general.send_locura, filter_is_from_group))
-    dp.add_handler(CommandHandler('mecagoenlamadrequemepario', general.send_gritopokemon, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('purge', general.purger, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('demigrante', general.send_demigrante, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('shh', general.send_shh, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('ninoninini', general.send_ninoninini, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('alerta', general.send_alerta, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('tq', general.send_tq, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('disculpa', general.send_disculpa, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('locura', general.send_locura, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('mecagoenlamadrequemepario', general.send_gritopokemon, filter_is_from_group))
     dp.add_handler(CommandHandler('gett', gett, Filters.user(user_id=admin_id), pass_job_queue=True))
     dp.add_handler(CallbackQueryHandler(mentions.callback_query_handler, pass_user_data=True, pass_job_queue=True,
                                         pass_chat_data=True))
-    dp.add_handler(CommandHandler('pipas', mentions.who_pipas, filter_is_from_group))
-    dp.add_handler(CommandHandler('repipas', mentions.recover_pipas, filter_is_from_group))
-    dp.add_handler(CommandHandler('mention', mentions.mention_control, filter_is_from_group))
-    dp.add_handler(CommandHandler('minecraft', demi_utils.send_who_minecraft, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('pipas', mentions.who_pipas, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('repipas', mentions.recover_pipas, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('mention', mentions.mention_control, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('minecraft', demi_utils.send_who_minecraft, filter_is_from_group))
 
     for name in utils.get_names():
-        dp.add_handler(CommandHandler(name.lower(), safe_report, Filters.chat(chat_id=group_id)))
+        dp.add_handler(CommandHandlerFlood(name.lower(), safe_report,
+                                      lambda msg: filter_is_from_group and Filters.chat(chat_id=group_id)))
 
     headshot_handler = ConversationHandler(
-        entry_points=[CommandHandler('headshot', poles.pre_headshot, filter_is_from_group)],
+        entry_points=[CommandHandlerFlood('headshot', poles.pre_headshot, filter_is_from_group)],
         states={
             0: [RegexHandler('^(%s)$' % '|'.join(utils.get_names()), poles.headshot)],
         },
@@ -384,7 +396,7 @@ def main():
     dp.add_handler(headshot_handler)
 
     mute_handler = ConversationHandler(
-        entry_points=[CommandHandler('mute', poles.pre_mute, filter_is_from_group)],
+        entry_points=[CommandHandlerFlood('mute', poles.pre_mute, filter_is_from_group)],
         states={
             0: [RegexHandler('^(%s)$' % '|'.join(utils.get_names()), poles.mute)],
         },
