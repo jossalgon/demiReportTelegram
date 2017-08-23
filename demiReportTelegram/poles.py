@@ -491,5 +491,5 @@ def change_group_name_bot(bot, update):
 
 
 def run_daily_perros(bot, job):
-    if random.random() < 0.1:
+    if random.random() < 0.15:
         cuenta_perros(bot)
