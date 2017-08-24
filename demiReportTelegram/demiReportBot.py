@@ -49,7 +49,7 @@ def welcome_to_member(bot, update, job_queue):
         if message.chat_id == group_id and not utils.is_from_group(user_id):
             variables.add_new_member(user_id)
             bot.send_message(variables.admin_id, user_id)
-        job_queue.run_once(utils.remove_message_from_group, 30, context=msg_sticker.message_id)
+        job_queue.run_once(demi_utils.remove_message, 30, context=(message.chat_id, msg_sticker.message_id))
     except:
         logger.error('Fatal error in welcome_to_member', exc_info=True)
 
@@ -266,7 +266,7 @@ def pin(bot, update):
         bot.pinChatMessage(chat_id=group_id, message_id=message.message_id, disable_notification=True)
 
 
-def safe_report(bot, update):
+def safe_report(bot, update, job_queue):
     message = update.message
     user_id = message.from_user.id
     command = message.text.split('@')[0].split(' ')[0]
@@ -275,7 +275,7 @@ def safe_report(bot, update):
     if reported == user_id:
         bot.delete_message(chat_id=message.chat_id, message_id=message.message_id)
     else:
-        reports.send_report(bot, user_id, reported)
+        reports.send_report(bot, user_id, reported, job_queue)
 
 
 def log_error(bot, update, error):
@@ -384,7 +384,8 @@ def main():
 
     for name in utils.get_names():
         dp.add_handler(CommandHandlerFlood(name.lower(), safe_report,
-                                      lambda msg: filter_is_from_group and Filters.chat(chat_id=group_id)))
+                                      lambda msg: filter_is_from_group and Filters.chat(chat_id=group_id),
+                                           pass_job_queue=True))
 
     headshot_handler = ConversationHandler(
         entry_points=[CommandHandlerFlood('headshot', poles.pre_headshot, filter_is_from_group)],

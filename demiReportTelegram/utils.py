@@ -423,3 +423,8 @@ def send_who_minecraft(bot, update, message_id=None, chat_id=None):
     else:
         bot.send_message(message.chat.id, res, parse_mode='Markdown', reply_markup=reply_markup,
                          reply_to_message_id=message.message_id)
+
+
+def remove_message(bot, job):
+    chat_id, message_id = job.context
+    bot.delete_message(chat_id=chat_id, message_id=message_id)
