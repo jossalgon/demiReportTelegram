@@ -85,7 +85,7 @@ def mention_handler(bot, update):
 
 
 def hipermierda(bot, update):
-    message = update.message
+    message = update.effective_message
     user_id = message.from_user.id
     if message.chat_id != group_id:
         return False
@@ -339,7 +339,8 @@ def main():
     dp.add_handler(CommandHandlerFlood('whots', teamspeak.ts_stats, filter_is_from_group))
     dp.add_handler(CommandHandler('troll', set_troll, Filters.user(user_id=admin_id), pass_args=True))
     dp.add_handler(MessageHandler(Filters.entity(MessageEntity.MENTION) & not_forwarded, mention_handler))
-    dp.add_handler(RegexHandler(r'(?i).*hipertextual.com|.*twitter\.com\/Hipertextual', hipermierda))
+    dp.add_handler(RegexHandler(r'(?i)[\s\S]*hipertextual.com|[\s\S]*twitter\.com\/Hipertextual|[\s\S]*hiper.click',
+                                hipermierda, allow_edited=True))
     dp.add_handler(RegexHandler(r'(?i)(?=.*es)(?=.*raulito)(?=.*oro)?', raulito_oro))
     dp.add_handler(RegexHandler(r'(?i).*y no [\w ]+ a[l]? selu\?.*', send_selu_sticker))
     dp.add_handler(InlineQueryHandler(inline_query))
