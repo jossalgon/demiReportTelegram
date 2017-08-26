@@ -278,7 +278,7 @@ def check_points(bot, update, points):
 
 
 @run_async
-def headshot(bot, update):
+def headshot(bot, update, job_queue):
     message = update.message
     user_id = message.from_user.id
     name = update.message.text
@@ -309,7 +309,7 @@ def headshot(bot, update):
         if not isinstance(gif1, str):
             gif1.close()
             gif2.close()
-        thr1 = threading.Thread(target=reports.counter, args=(bot, name, reported))
+        thr1 = threading.Thread(target=reports.counter, args=(bot, name, reported, job_queue))
         thr1.start()
     except Exception:
         logger.error('Fatal error in headshot', exc_info=True)

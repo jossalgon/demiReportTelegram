@@ -340,7 +340,7 @@ def main():
     dp.add_handler(CommandHandler('troll', set_troll, Filters.user(user_id=admin_id), pass_args=True))
     dp.add_handler(MessageHandler(Filters.entity(MessageEntity.MENTION) & not_forwarded, mention_handler))
     dp.add_handler(RegexHandler(r'(?i)[\s\S]*hipertextual.com|[\s\S]*twitter\.com\/Hipertextual|[\s\S]*hiper.click',
-                                hipermierda, allow_edited=True))
+                                hipermierda, edited_updates=True))
     dp.add_handler(RegexHandler(r'(?i)(?=.*es)(?=.*raulito)(?=.*oro)?', raulito_oro))
     dp.add_handler(RegexHandler(r'(?i).*y no [\w ]+ a[l]? selu\?.*', send_selu_sticker))
     dp.add_handler(InlineQueryHandler(inline_query))
@@ -391,7 +391,7 @@ def main():
     headshot_handler = ConversationHandler(
         entry_points=[CommandHandlerFlood('headshot', poles.pre_headshot, filter_is_from_group)],
         states={
-            0: [RegexHandler('^(%s)$' % '|'.join(utils.get_names()), poles.headshot)],
+            0: [RegexHandler('^(%s)$' % '|'.join(utils.get_names()), poles.headshot, pass_job_queue=True)],
         },
 
         fallbacks=[CommandHandler('cancel', cancel), CommandHandler('mute', cancel)]
