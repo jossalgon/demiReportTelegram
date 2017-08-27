@@ -290,17 +290,25 @@ def not_forwarded(msg):
     return not bool(msg.forward_date)
 
 
+def connect_account(bot, job):
+    demi_utils.connect_account()
+
+
 def pole_timer(job_queue):
     x = datetime.datetime.today()
     y = x.replace(day=x.day, hour=23, minute=59, second=55, microsecond=0)
     y2 = x.replace(day=x.day, hour=1, minute=00, second=00, microsecond=0) + datetime.timedelta(days=1)
+    y3 = x.replace(day=1, hour=2, minute=00, second=00, microsecond=0)
     delta_t = y - x
     delta_t2 = y2 - x
+    delta_t3 = y3 - x
     secs = delta_t.seconds + 1
     secs2 = delta_t2.seconds + 1
+    secs3 = delta_t3.seconds + 1
     job_queue.run_daily(callback=demi_utils.pole_counter, time=secs)
     job_queue.run_daily(callback=poles.run_daily_perros, time=secs-10)
     job_queue.run_daily(callback=variables.clean_poles, time=secs2)
+    job_queue.run_daily(callback=connect_account, time=secs3)
 
 
 class CommandHandlerFlood(CommandHandler):

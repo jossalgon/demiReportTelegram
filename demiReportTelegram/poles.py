@@ -446,7 +446,6 @@ def change_group_photo_bot(bot, update):
         msg = bot.send_message(chat_id, '🌀Procesando...')
         photo_file = bot.getFile(message.photo[-1].file_id)
         photo_file.download('photo.jpg')
-        # demi_utils.change_group_photo()
         with open('photo.jpg', 'rb') as photo_downloaded:
             bot.set_chat_photo(chat_id=group_id, photo=photo_downloaded)
         bot.edit_message_text('✅ Foto cambiada', chat_id=chat_id, message_id=msg.message_id)
@@ -479,7 +478,6 @@ def change_group_name_bot(bot, update):
                     group_name += '%s - ' % row[0]
                 else:
                     group_name += row[0]
-            # demi_utils.change_group_name(group_name)
             bot.set_chat_title(chat_id=group_id, title=group_name)
             bot.edit_message_text('✅ Nombre cambiado', chat_id=chat_id, message_id=msg.message_id)
     except Exception:
