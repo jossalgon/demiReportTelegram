@@ -234,7 +234,9 @@ def notify(bot, update, args):
 
 def gett(bot, update, job_queue):
     message = update.message
-    bot.sendMessage(chat_id=message.chat_id, text=str(job_queue.queue.queue), reply_to_message_id=message.message_id)
+    res = [datetime.datetime.fromtimestamp(job[0]).strftime('%d/%m/%Y %H:%M:%S') + " -> " + str(job[1].name)
+           for job in job_queue.queue.queue]
+    bot.sendMessage(chat_id=message.chat_id, text='\n'.join(res), reply_to_message_id=message.message_id)
 
 
 def set_mute_time(bot, update, args):
