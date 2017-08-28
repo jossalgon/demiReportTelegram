@@ -290,7 +290,7 @@ def is_silent_user(user_id, mention_type):
         return res
 
 
-def connect_account():
+def login_account():
     os.system("./../tg/bin/telegram-cli -W -e 'status_online'")
     os.system("./../tg/bin/telegram-cli -W -e 'status_offline'")
 
