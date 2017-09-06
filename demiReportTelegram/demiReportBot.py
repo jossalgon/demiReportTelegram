@@ -15,6 +15,7 @@ from telegram import MessageEntity, InlineKeyboardMarkup, InlineKeyboardButton, 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, RegexHandler, InlineQueryHandler, \
     ChosenInlineResultHandler, ConversationHandler, CallbackQueryHandler
 from telegram.ext.dispatcher import run_async
+from telegram.ext.filters import MergedFilter
 
 from demiReportTelegram import adults, general, mentions, poles, variables, songs
 from demiReportTelegram import utils as demi_utils
@@ -392,7 +393,7 @@ def main():
 
     for name in utils.get_names():
         dp.add_handler(CommandHandlerFlood(name.lower(), safe_report,
-                                      lambda msg: filter_is_from_group and Filters.chat(chat_id=group_id),
+                                           MergedFilter(Filters.chat(chat_id=group_id), and_filter=filter_is_from_group),
                                            pass_job_queue=True))
 
     headshot_handler = ConversationHandler(
