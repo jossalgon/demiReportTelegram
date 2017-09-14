@@ -80,6 +80,7 @@ def send_locura(bot, update):
     bot.send_audio(chat_id, audio)
     audio.close()
 
+
 def send_gritopokemon(bot, update):
     message = update.message
     chat_id = message.chat.id
@@ -88,3 +89,11 @@ def send_gritopokemon(bot, update):
     bot.send_audio(chat_id, audio)
     audio.close()
 
+
+def send_futbol_audio(bot, update):
+    message = update.message
+    chat_id = message.chat.id
+    resource = 'data/voices/futbolaudio.ogg'
+    audio = open(os.path.join(os.path.dirname(sys.modules['demiReportTelegram'].__file__), resource), 'rb')
+    bot.send_audio(chat_id, audio)
+    audio.close()

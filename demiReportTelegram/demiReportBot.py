@@ -383,6 +383,8 @@ def main():
     dp.add_handler(CommandHandlerFlood('disculpa', general.send_disculpa, filter_is_from_group))
     dp.add_handler(CommandHandlerFlood('locura', general.send_locura, filter_is_from_group))
     dp.add_handler(CommandHandlerFlood('mecagoenlamadrequemepario', general.send_gritopokemon, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('hijoDeCuatrocientosSetentaSistemasSolaresRepletosDePutas',
+                                       general.send_futbol_audio, filter_is_from_group))
     dp.add_handler(CommandHandler('gett', gett, Filters.user(user_id=admin_id), pass_job_queue=True))
     dp.add_handler(CallbackQueryHandler(mentions.callback_query_handler, pass_user_data=True, pass_job_queue=True,
                                         pass_chat_data=True))
