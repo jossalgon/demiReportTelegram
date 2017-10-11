@@ -344,6 +344,7 @@ def cuenta_all(bot, user_ids):
     time.sleep(reports.variables.ban_time)
     for user_id in user_ids:
         try:
+            bot.unban_chat_member(group_id, user_id)
             with con.cursor() as cur:
                 cur.execute('DELETE FROM Reports WHERE Reported = %s', (str(user_id),))
                 cur.execute('UPDATE Flamers SET Kicks = Kicks + 1 WHERE UserId = %s', (str(user_id),))
