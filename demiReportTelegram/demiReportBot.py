@@ -307,7 +307,11 @@ def safe_report(bot, update, job_queue):
 def send_wanted_word(bot, update):
     message = update.message
     user_id = message.from_user.id
-    words = re.findall('\\b' + '\\b|\\b'.join(wanted_words) + '\\b', message.text, re.IGNORECASE)
+    words = list()
+    for wanted_word in wanted_words:
+        word = re.search('\\b'+wanted_word+'\\b', message.text, re.IGNORECASE)
+        if word:
+            words.append(word.group(0))
     targets = list()
 
     for word in words:
@@ -316,7 +320,7 @@ def send_wanted_word(bot, update):
     for target_id in set(targets):
         if int(target_id) == int(admin_id) and target_id != user_id:
             pushover.Client(variables.pushover_client) \
-                .send_message(update.message.text, title=utils.get_name(user_id))
+                .send_message(update.message.text, title=utils.get_name(user_id), priority=-1)
 
         elif target_id != user_id:
             bot.forward_message(target_id, message.chat.id, message.message_id)
