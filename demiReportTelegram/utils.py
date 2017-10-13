@@ -273,6 +273,103 @@ def mention_control(user_id, mention_type, silent):
             con.close()
 
 
+def get_wanted_words(user_id):
+    words = {}
+    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    try:
+        with con.cursor() as cur:
+            cur.execute('SELECT wordId, word FROM WantedWords WHERE userId=%s', (str(user_id),))
+            rows = cur.fetchall()
+            for row in rows:
+                words[row[0]] = row[1]
+    except Exception:
+        logger.error('Fatal error in get_wanted_words', exc_info=True)
+    finally:
+        if con:
+            con.close()
+        return words
+
+
+def remove_wanted_word(word_id):
+    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    try:
+        with con.cursor() as cur:
+            cur.execute('DELETE FROM WantedWords WHERE wordId=%s', (str(word_id),))
+            return True
+    except Exception:
+        logger.error('Fatal error in remove_wanted_word', exc_info=True)
+    finally:
+        if con:
+            con.commit()
+            con.close()
+
+
+def is_wanted_word(word, user_id):
+    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    res = False
+    try:
+        with con.cursor() as cur:
+            cur.execute("SELECT wordId FROM WantedWords WHERE word=%s and userId=%s",
+                        (str(word), str(user_id)))
+            query_fetch = cur.fetchone()
+            res = query_fetch is not None
+    except Exception:
+        logger.error('Fatal error in is_wanted_word', exc_info=True)
+    finally:
+        if con:
+            con.close()
+        return res
+
+
+def get_word(word_id):
+    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    res = ''
+    try:
+        with con.cursor() as cur:
+            cur.execute("SELECT word FROM WantedWords WHERE wordId=%s", (str(word_id),))
+            res = cur.fetchone()[0]
+    except Exception:
+        logger.error('Fatal error in get_word', exc_info=True)
+    finally:
+        if con:
+            con.close()
+        return res
+
+
+def get_users_from_word(word):
+    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    user_ids = list()
+    try:
+        with con.cursor() as cur:
+            cur.execute("SELECT userId FROM WantedWords WHERE word=%s", (str(word),))
+            rows = cur.fetchall()
+            for row in rows:
+                user_ids.append(row[0])
+    except Exception:
+        logger.error('Fatal error in get_word', exc_info=True)
+    finally:
+        if con:
+            con.close()
+        return user_ids
+
+
+def get_all_words():
+    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    words = list()
+    try:
+        with con.cursor() as cur:
+            cur.execute("SELECT word FROM WantedWords")
+            rows = cur.fetchall()
+            for row in rows:
+                words.append(row[0])
+    except Exception as exception:
+        logger.error('Fatal error in get_all_words', exc_info=True)
+    finally:
+        if con:
+            con.close()
+        return words
+
+
 def is_silent_user(user_id, mention_type):
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
     res = False
@@ -333,6 +430,12 @@ def create_database():
                 CREATE TABLE IF NOT EXISTS `GroupNames` ( \
                   `groupName` text NOT NULL, \
                   `position` int(11) NOT NULL \
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; \
+                CREATE TABLE IF NOT EXISTS `WantedWords` ( \
+                  `wordId` int NOT NULL AUTO_INCREMENT, \
+                  `word` text NOT NULL, \
+                  `userId` int(11) NOT NULL, \
+                   PRIMARY KEY (wordId) \
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; \
                 CREATE TABLE IF NOT EXISTS `Pipas` ( \
                   `eventId` BIGINT(30) NOT NULL, \

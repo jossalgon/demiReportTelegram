@@ -3,9 +3,12 @@
 import configparser
 import io
 import logging
+import re
 import time
 import datetime
 import pkgutil
+import pushover
+import pymysql
 
 from reportTelegram import reportBot, utils, reports
 from reportTelegram import variables as report_variables
@@ -15,7 +18,7 @@ from telegram import MessageEntity, InlineKeyboardMarkup, InlineKeyboardButton, 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, RegexHandler, InlineQueryHandler, \
     ChosenInlineResultHandler, ConversationHandler, CallbackQueryHandler
 from telegram.ext.dispatcher import run_async
-from telegram.ext.filters import MergedFilter
+from telegram.ext.filters import MergedFilter, InvertedFilter
 
 from demiReportTelegram import adults, general, mentions, poles, variables, songs
 from demiReportTelegram import utils as demi_utils
@@ -30,9 +33,16 @@ config.read('config.ini')
 
 TG_TOKEN = config['Telegram']['token']
 
+DB_HOST = variables.DB_HOST
+DB_USER = variables.DB_USER
+DB_PASS = variables.DB_PASS
+DB_NAME = variables.DB_NAME
+
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 logger = logging.getLogger(__name__)
+
+wanted_words = list()
 
 
 def start(bot, update):
@@ -171,6 +181,11 @@ def filter_group_name_reward(msg):
            and datetime.datetime.today().weekday() == 5
 
 
+def filter_wanted_words(msg):
+    return wanted_words and not Filters.command(msg) and \
+           bool(re.search('\\b' + '\\b|\\b'.join(wanted_words) + '\\b', msg.text, re.IGNORECASE))
+
+
 # +18
 def stop_18(bot, update):
     message = update.message
@@ -263,6 +278,14 @@ def cancel(bot, update):
     return ConversationHandler.END
 
 
+def done(bot, update):
+    message = update.message
+    bot.sendMessage(chat_id=message.chat_id, text='ALRIGHT',
+                    reply_to_message_id=message.message_id,
+                    reply_markup=ReplyKeyboardRemove(selective=True))
+    return ConversationHandler.END
+
+
 def pin(bot, update):
     message = update.message.reply_to_message
     if message is not None:
@@ -279,6 +302,105 @@ def safe_report(bot, update, job_queue):
         bot.delete_message(chat_id=message.chat_id, message_id=message.message_id)
     else:
         reports.send_report(bot, user_id, reported, job_queue)
+
+
+def send_wanted_word(bot, update):
+    message = update.message
+    user_id = message.from_user.id
+    words = re.findall('\\b' + '\\b|\\b'.join(wanted_words) + '\\b', message.text, re.IGNORECASE)
+    targets = list()
+
+    for word in words:
+        targets.extend(demi_utils.get_users_from_word(word))
+
+    for target_id in set(targets):
+        if int(target_id) == int(admin_id) and target_id != user_id:
+            pushover.Client(variables.pushover_client) \
+                .send_message(update.message.text, title=utils.get_name(user_id))
+
+        elif target_id != user_id:
+            bot.forward_message(target_id, message.chat.id, message.message_id)
+
+
+def pre_add_wanted_word(bot, update):
+    message = update.message
+    user_id = message.from_user.id
+
+    if message.chat_id != user_id:
+        bot.send_message(message.chat_id, 'Este comando no puede ser usado en un grupo, abre mp.',
+                         reply_to_message_id=message.message_id)
+        return ConversationHandler.END
+
+    bot.send_message(user_id, 'Ok, envía una mensaje por palabra o frase exacta que quieres que te notifique.'
+                                      '\n\nPara acabar pulsa /done', reply_to_message_id=message.message_id)
+    return 0
+
+
+def add_wanted_word(bot, update):
+    message = update.message
+    user_id = message.from_user.id
+    word = message.text
+
+    if demi_utils.is_wanted_word(word, user_id):
+        message.reply_text('Esa palabra ya existe')
+        return
+
+    elif len(word) > 100:
+        message.reply_text('No me escribas el quijote tampoco cabron')
+        return
+
+    elif len(demi_utils.get_wanted_words(user_id)) >= 20:
+        message.reply_text('Uff ya tienes muchas, quitame alguna antes anda')
+        return ConversationHandler.END
+
+    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    try:
+        with con.cursor() as cur:
+            cur.execute("INSERT INTO WantedWords(word, userId) VALUES(%s, %s)",
+                        (str(word), str(user_id)))
+        wanted_words.append(message.text)
+        message.reply_text('Palabra "%s" añadida' % message.text)
+
+    except Exception:
+        logger.error('Fatal error in add_wanted_word', exc_info=True)
+    finally:
+        if con:
+            con.commit()
+            con.close()
+
+
+def manage_wanted_word(bot, update, edit_message=False):
+    message = update.effective_message
+    user_id = update.effective_user.id
+    chat_id = message.chat_id
+    words = demi_utils.get_wanted_words(user_id)
+    text = "👀 *Wanted Words*\n\n"
+
+    keyboard = list()
+    for word_id in list(words):
+        word = words[word_id]
+        keyboard.append([InlineKeyboardButton(word, callback_data='DELWORD_%i' % word_id)])
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    if message.chat_id != user_id and not edit_message:
+        bot.send_message(chat_id, 'TIENES MP', reply_to_message_id=message.message_id)
+
+    if edit_message:
+        if len(words) == 0:
+            bot.edit_message_text(chat_id=user_id,
+                                  text=text + 'No tienes ninguna palabra de aviso todavía. Para añadir alguna usa /addword',
+                                  message_id=message.message_id, reply_markup=reply_markup, parse_mode='Markdown')
+        else:
+            bot.edit_message_reply_markup(reply_markup=reply_markup, chat_id=chat_id,
+                                          message_id=message.message_id)
+    else:
+        if len(words) == 0:
+            text += 'No tienes ninguna palabra de aviso todavía. Para añadir alguna usa /addword'
+        else:
+            text += 'Estas son las palabras (pulsa sobre cualquiera para eliminarla):'
+
+        bot.send_message(user_id, text, reply_markup=reply_markup, parse_mode='Markdown')
 
 
 def log_error(bot, update, error):
@@ -322,6 +444,43 @@ class CommandHandlerFlood(CommandHandler):
         return super(CommandHandlerFlood, self).handle_update(update, dispatcher)
 
 
+def callback_query_handler(bot, update, user_data, job_queue, chat_data):
+    query_data = update.callback_query.data
+    message = update.effective_message
+    if query_data.startswith('PIPAS_UPDATE'):
+        if demi_utils.get_who_pipas().strip() == message.text_markdown:
+            bot.answer_callback_query(update.callback_query.id, 'Sin cambios')
+        else:
+            mentions.who_pipas(bot, update, message_id=message.message_id, chat_id=update.effective_chat.id)
+            bot.answer_callback_query(update.callback_query.id, 'Actualizado correctamente')
+    elif query_data.startswith('MENTION'):
+        mentions.post_mention_control(bot, update, user_data, job_queue)
+    elif query_data.startswith('TS_UPDATE') or query_data.startswith('USER') or query_data.startswith('GROUP'):
+        utils_teamspeak.callback_query_handler(bot, update, chat_data)
+    elif query_data.startswith('STATS_UPDATE'):
+        reports.callback_query_handler(bot, update, user_data, job_queue, chat_data)
+    elif query_data.startswith('MINECRAFT_UPDATE'):
+        if demi_utils.get_who_minecraft().strip() == message.text_markdown:
+            bot.answer_callback_query(update.callback_query.id, 'Sin cambios')
+        else:
+            demi_utils.send_who_minecraft(bot, update, message_id=message.message_id,
+                                          chat_id=update.effective_chat.id)
+            bot.answer_callback_query(update.callback_query.id, 'Actualizado correctamente')
+    elif query_data.startswith('DELWORD'):
+        try:
+            word_id = int(query_data.split('DELWORD_')[1])
+            wanted_words.remove(demi_utils.get_word(word_id))
+            demi_utils.remove_wanted_word(word_id)
+            bot.answer_callback_query(update.callback_query.id, 'Palabra eliminada')
+        except:
+            bot.answer_callback_query(update.callback_query.id, 'Esta palabra no existe')
+
+        manage_wanted_word(bot, update, edit_message=True)
+
+    else:
+        mentions.pipas_selected(bot, update, user_data, job_queue)
+
+
 def main():
     utils_teamspeak.create_database()
     utils.create_database()
@@ -330,6 +489,9 @@ def main():
     updater = Updater(token=TG_TOKEN, workers=32)
     dp = updater.dispatcher
     report_variables.user_data_dict = dp.user_data
+    pushover.init(variables.pushover_token)
+
+    wanted_words.extend(demi_utils.get_all_words())
 
     pole_timer(updater.job_queue)
 
@@ -386,12 +548,13 @@ def main():
     dp.add_handler(CommandHandlerFlood('hijodecuatrocientossetenta',
                                        general.send_futbol_audio, filter_is_from_group))
     dp.add_handler(CommandHandler('gett', gett, Filters.user(user_id=admin_id), pass_job_queue=True))
-    dp.add_handler(CallbackQueryHandler(mentions.callback_query_handler, pass_user_data=True, pass_job_queue=True,
+    dp.add_handler(CallbackQueryHandler(callback_query_handler, pass_user_data=True, pass_job_queue=True,
                                         pass_chat_data=True))
     dp.add_handler(CommandHandlerFlood('pipas', mentions.who_pipas, filter_is_from_group))
     dp.add_handler(CommandHandlerFlood('repipas', mentions.recover_pipas, filter_is_from_group))
     dp.add_handler(CommandHandlerFlood('mention', mentions.mention_control, filter_is_from_group))
     dp.add_handler(CommandHandlerFlood('minecraft', demi_utils.send_who_minecraft, filter_is_from_group))
+    dp.add_handler(CommandHandler('words', manage_wanted_word))
 
     for name in utils.get_names():
         dp.add_handler(CommandHandlerFlood(name.lower(), safe_report,
@@ -404,7 +567,7 @@ def main():
             0: [RegexHandler('^(%s)$' % '|'.join(utils.get_names()), poles.headshot, pass_job_queue=True)],
         },
 
-        fallbacks=[CommandHandler('cancel', cancel), CommandHandler('mute', cancel)]
+        fallbacks=[CommandHandler('cancel', cancel), CommandHandler('mute', cancel), CommandHandler('addword', cancel)]
     )
     dp.add_handler(headshot_handler)
 
@@ -414,9 +577,22 @@ def main():
             0: [RegexHandler('^(%s)$' % '|'.join(utils.get_names()), poles.mute)],
         },
 
-        fallbacks=[CommandHandler('cancel', cancel), CommandHandler('headshot', cancel)]
+        fallbacks=[CommandHandler('cancel', cancel), CommandHandler('headshot', cancel),
+                   CommandHandler('addword', cancel)]
     )
     dp.add_handler(mute_handler)
+
+    wanted_word_handler = ConversationHandler(
+        entry_points=[CommandHandlerFlood('addword', pre_add_wanted_word, filter_is_from_group)],
+        states={
+            0: [MessageHandler(MergedFilter(Filters.text, and_filter=InvertedFilter(Filters.command)), add_wanted_word)],
+        },
+
+        fallbacks=[CommandHandler('cancel', cancel), CommandHandler('done', done),
+                   CommandHandler('headshot', cancel), CommandHandler('mute', cancel)]
+    )
+    dp.add_handler(wanted_word_handler)
+    dp.add_handler(MessageHandler(filter_wanted_words, send_wanted_word))
 
     dp.add_error_handler(log_error)
 

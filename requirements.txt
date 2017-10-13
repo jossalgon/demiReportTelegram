@@ -6,3 +6,4 @@ cleverwrap
 reportTelegram
 teamSpeakTelegram
 mcstatus
+python-pushover
