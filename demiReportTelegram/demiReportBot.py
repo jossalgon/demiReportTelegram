@@ -72,7 +72,7 @@ def power_on(bot, update):
         bot.unban_chat_member(group_id, admin_id)
         bot.send_message(admin_id, 'Desbaneado')
     else:
-        bot.promote_chat_member(group_id, admin_id, can_restrict_members=True)
+        bot.promote_chat_member(group_id, admin_id, can_restrict_members=True, can_change_info=True)
         bot.send_message(group_id, 'Selu activó sus poderes')
 
 
@@ -187,7 +187,7 @@ def filter_group_name_reward(msg):
 
 
 def filter_wanted_words(msg):
-    return wanted_words and not Filters.command(msg) and \
+    return wanted_words and not Filters.forwarded(msg) and not Filters.command(msg) and \
            bool(re.search('\\b' + '\\b|\\b'.join(wanted_words) + '\\b', msg.text, re.IGNORECASE))
 
 
