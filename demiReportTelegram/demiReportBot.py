@@ -67,12 +67,17 @@ def welcome_to_member(bot, update, job_queue):
 
 # ADMIN POWER
 def power_on(bot, update):
-    demi_utils.set_power(2)
-    bot.send_message(group_id, 'Selu activó sus poderes')
+    chat_member = bot.get_chat_member(group_id, admin_id)
+    if chat_member.status == 'kicked':
+        bot.unban_chat_member(group_id, admin_id)
+        bot.send_message(admin_id, 'Desbaneado')
+    else:
+        bot.promote_chat_member(group_id, admin_id, can_restrict_members=True)
+        bot.send_message(group_id, 'Selu activó sus poderes')
 
 
 def power_off(bot, update):
-    demi_utils.set_power(0)
+    bot.promote_chat_member(group_id, admin_id, can_restrict_members=False)
     bot.send_message(group_id, 'Selu desactivó sus poderes')
 
 
