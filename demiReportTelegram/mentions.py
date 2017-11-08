@@ -52,7 +52,7 @@ def set_troll(target):
 
 def mention_handler(bot, message):
     usernames = demi_utils.get_usernames(bot)
-    mentions = re.findall(r'@\w+', message.text)
+    mentions = [mention.lower() for mention in re.findall(r'@\w+', message.text)]
     user_ids = demi_utils.get_user_ids()
     silent_todos = demi_utils.get_not_mention('TODOS')
     silent_menciones = demi_utils.get_not_mention('MENCIONES')
@@ -61,11 +61,10 @@ def mention_handler(bot, message):
     if message.from_user.id in demi_utils.get_trolls():
         return False
 
-    for mention in mentions:
-        mention = mention.lower()
-        if mention in usernames:
-            if usernames[mention] not in silent_menciones:
-                bot.forward_message(usernames[mention], group_id, message.message_id)
+    for user_id in demi_utils.get_user_ids():
+        username = '@' + bot.get_chat_member(group_id, user_id).user.username.lower()
+        if username in mentions and user_id not in silent_menciones:
+            bot.forward_message(user_id, group_id, message.message_id)
     if bool(re.match(r'(?i).*@todos.*', message.text)):
         for user_id in user_ids:
             if user_id not in silent_todos:
