@@ -187,7 +187,7 @@ def filter_group_name_reward(msg):
 
 
 def filter_wanted_words(msg):
-    return wanted_words and not Filters.forwarded(msg) and not Filters.command(msg) and \
+    return wanted_words and Filters.text(msg) and not Filters.forwarded(msg) and not Filters.command(msg) and \
            bool(re.search('\\b' + '\\b|\\b'.join(wanted_words) + '\\b', msg.text, re.IGNORECASE))
 
 
