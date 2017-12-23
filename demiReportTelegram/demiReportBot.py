@@ -309,6 +309,18 @@ def safe_report(bot, update, job_queue):
         reports.send_report(bot, user_id, reported, job_queue)
 
 
+def safe_love(bot, update, job_queue):
+    message = update.message
+    user_id = message.from_user.id
+    command = message.text.split('@')[0].split(' ')[0]
+    name = command.replace('/love', '').capitalize()
+    loved = utils.get_user_id(name)
+    if loved == user_id:
+        bot.delete_message(chat_id=message.chat_id, message_id=message.message_id)
+    else:
+        reports.send_love(bot, user_id, loved, job_queue)
+
+
 def send_wanted_word(bot, update):
     message = update.message
     user_id = message.from_user.id
@@ -568,6 +580,10 @@ def main():
     for name in utils.get_names():
         dp.add_handler(CommandHandlerFlood(name.lower(), safe_report,
                                            MergedFilter(Filters.chat(chat_id=group_id), and_filter=filter_is_from_group),
+                                           pass_job_queue=True))
+        dp.add_handler(CommandHandlerFlood('love' + name.lower(), safe_love,
+                                           MergedFilter(Filters.chat(chat_id=group_id),
+                                                        and_filter=filter_is_from_group),
                                            pass_job_queue=True))
 
     headshot_handler = ConversationHandler(
