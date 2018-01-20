@@ -3,4 +3,8 @@ config.ini
 *.out
 .idea/
 __pycache__
-
+*.sql
+dist/
+*.pyc
+*.egg-info/
+build/
