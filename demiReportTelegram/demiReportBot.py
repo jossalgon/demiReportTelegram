@@ -624,6 +624,8 @@ def main():
     dp.add_handler(wanted_word_handler)
     dp.add_handler(MessageHandler(filter_wanted_words, send_wanted_word))
 
+    dp.add_handler(CommandHandler('cancel', cancel, filter_is_from_group))
+
     dp.add_error_handler(log_error)
 
     updater.start_polling()
