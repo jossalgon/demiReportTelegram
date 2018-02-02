@@ -283,6 +283,15 @@ def cancel(bot, update):
     return ConversationHandler.END
 
 
+def clean_keyboard(bot, update):
+    message = update.message
+    msg = bot.sendMessage(chat_id=message.chat_id, text='Limpiando teclado...',
+                          reply_to_message_id=message.message_id,
+                          reply_markup=ReplyKeyboardRemove(selective=True))
+    bot.delete_message(chat_id=message.chat_id, message_id=message.message_id)
+    bot.delete_message(chat_id=message.chat_id, message_id=msg.message_id)
+
+
 def done(bot, update):
     message = update.message
     bot.sendMessage(chat_id=message.chat_id, text='ALRIGHT',
@@ -624,7 +633,7 @@ def main():
     dp.add_handler(wanted_word_handler)
     dp.add_handler(MessageHandler(filter_wanted_words, send_wanted_word))
 
-    dp.add_handler(CommandHandler('cancel', cancel, filter_is_from_group))
+    dp.add_handler(CommandHandler('cancel', clean_keyboard, filter_is_from_group))
 
     dp.add_error_handler(log_error)
 
