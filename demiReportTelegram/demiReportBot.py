@@ -466,7 +466,7 @@ def pole_timer(job_queue):
 class CommandHandlerFlood(CommandHandler):
     def handle_update(self, update, dispatcher):
         user_id = update.message.from_user.id
-        if user_id == 296066710 and update.message.chat.type != 'private' \
+        if user_id == 296066710 or user_id == 8787392 and update.message.chat.type != 'private' \
                 and demi_utils.flooder(dispatcher.user_data[user_id], dispatcher.job_queue, 2):
             dispatcher.bot.restrict_chat_member(group_id, user_id, can_send_messages=False,
                                                 until_date=time.time() + variables.MUTE_TIME)
@@ -633,7 +633,7 @@ def main():
     dp.add_handler(wanted_word_handler)
     dp.add_handler(MessageHandler(filter_wanted_words, send_wanted_word))
 
-    dp.add_handler(CommandHandler('cancel', clean_keyboard, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('cancel', clean_keyboard, filter_is_from_group))
 
     dp.add_error_handler(log_error)
 
