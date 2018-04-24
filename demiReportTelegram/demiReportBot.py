@@ -118,7 +118,7 @@ def raulito_oro(bot, update):
     message = update.message
     if message.chat_id != group_id:
         return False
-    bot.send_message(message.chat_id, 'No, todavía no', reply_to_message_id=message.message_id)
+    bot.send_message(message.chat_id, 'SIUUUUUUUUUUUUUUUUUUUUUUU', reply_to_message_id=message.message_id)
 
 
 def send_selu_sticker(bot, update):
