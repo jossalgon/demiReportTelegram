@@ -1,7 +1,7 @@
 requests
 python-telegram-bot
 ts3
-pymysql
+pymysql==0.8.1
 cleverwrap
 reportTelegram
 teamSpeakTelegram
