@@ -9,6 +9,7 @@ config.read('config.ini')
 api_token = config['Telegram']['token']
 
 link = config['Telegram']['link']
+EXTERNAL_HOST = config['Telegram']['EXTERNAL_HOST']
 group_id = int(config['Telegram']['group_id'])
 admin_id = int(config['Telegram']['admin_id'])
 

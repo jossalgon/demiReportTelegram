@@ -3,6 +3,7 @@
 import configparser
 import io
 import logging
+import os
 import re
 import time
 import datetime
@@ -12,8 +13,6 @@ import pymysql
 
 from reportTelegram import reportBot, utils, reports
 from reportTelegram import variables as report_variables
-from teamSpeakTelegram import teamspeak
-from teamSpeakTelegram import utils as utils_teamspeak
 from telegram import MessageEntity, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, RegexHandler, InlineQueryHandler, \
     ChosenInlineResultHandler, ConversationHandler, CallbackQueryHandler
@@ -32,11 +31,13 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 
 TG_TOKEN = config['Telegram']['token']
+PORT = int(os.environ.get('PORT', '8443'))
 
 DB_HOST = variables.DB_HOST
 DB_USER = variables.DB_USER
 DB_PASS = variables.DB_PASS
 DB_NAME = variables.DB_NAME
+EXTERNAL_HOST = variables.EXTERNAL_HOST
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
@@ -485,8 +486,6 @@ def callback_query_handler(bot, update, user_data, job_queue, chat_data):
             bot.answer_callback_query(update.callback_query.id, 'Actualizado correctamente')
     elif query_data.startswith('MENTION'):
         mentions.post_mention_control(bot, update, user_data, job_queue)
-    elif query_data.startswith('TS_UPDATE') or query_data.startswith('USER') or query_data.startswith('GROUP'):
-        utils_teamspeak.callback_query_handler(bot, update, chat_data)
     elif query_data.startswith('STATS_UPDATE'):
         reports.callback_query_handler(bot, update, user_data, job_queue, chat_data)
     elif query_data.startswith('MINECRAFT_UPDATE'):
@@ -512,7 +511,6 @@ def callback_query_handler(bot, update, user_data, job_queue, chat_data):
 
 
 def main():
-    utils_teamspeak.create_database()
     utils.create_database()
     demi_utils.create_database()
 
@@ -535,8 +533,6 @@ def main():
     dp.add_handler(MessageHandler(Filters.status_update.new_chat_members, welcome_to_member, pass_job_queue=True))
     dp.add_handler(CommandHandler('sipower', power_on, Filters.user(user_id=admin_id)))
     dp.add_handler(CommandHandler('nopower', power_off, Filters.user(user_id=admin_id)))
-    dp.add_handler(CommandHandlerFlood('ts', utils_teamspeak.ts_view, filter_is_from_group))
-    dp.add_handler(CommandHandlerFlood('whots', teamspeak.ts_stats, filter_is_from_group))
     dp.add_handler(CommandHandler('troll', set_troll, Filters.user(user_id=admin_id), pass_args=True))
     dp.add_handler(MessageHandler(Filters.entity(MessageEntity.MENTION) & not_forwarded, mention_handler))
     dp.add_handler(RegexHandler(r'(?i)[\s\S]*hipertextual.com|[\s\S]*twitter\.com\/Hipertextual|[\s\S]*hiper.click',
@@ -638,7 +634,10 @@ def main():
 
     dp.add_error_handler(log_error)
 
-    updater.start_polling()
+    updater.start_webhook(listen="0.0.0.0",
+                          port=PORT,
+                          url_path=TG_TOKEN)
+    updater.bot.set_webhook(EXTERNAL_HOST + TG_TOKEN)
 
     updater.idle()
 
