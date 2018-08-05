@@ -8,7 +8,6 @@ import pymysql
 from pushover import Client
 
 from reportTelegram import utils, reports
-from teamSpeakTelegram import utils as utils_teamspeak
 
 from demiReportTelegram import utils as demi_utils
 from demiReportTelegram import variables
