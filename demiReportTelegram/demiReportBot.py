@@ -586,18 +586,18 @@ def main():
     dp.add_handler(CommandHandler('words', manage_wanted_word))
 
     # Lovedomingo
-    dp.add_handler(CommandHandlerFlood('lovedomingo', safe_love,
-                                       MergedFilter(Filters.chat(chat_id=group_id),
-                                                    and_filter=filter_is_from_group),
-                                       pass_job_queue=True))
+    # dp.add_handler(CommandHandlerFlood('lovedomingo', safe_love,
+    #                                    MergedFilter(Filters.chat(chat_id=group_id),
+    #                                                 and_filter=filter_is_from_group),
+    #                                    pass_job_queue=True))
     for name in utils.get_names():
         dp.add_handler(CommandHandlerFlood(name.lower(), safe_report,
                                            MergedFilter(Filters.chat(chat_id=group_id), and_filter=filter_is_from_group),
                                            pass_job_queue=True))
-        # dp.add_handler(CommandHandlerFlood('love' + name.lower(), safe_love,
-        #                                    MergedFilter(Filters.chat(chat_id=group_id),
-        #                                                 and_filter=filter_is_from_group),
-        #                                    pass_job_queue=True))
+        dp.add_handler(CommandHandlerFlood('love' + name.lower(), safe_love,
+                                           MergedFilter(Filters.chat(chat_id=group_id),
+                                                        and_filter=filter_is_from_group),
+                                           pass_job_queue=True))
 
     headshot_handler = ConversationHandler(
         entry_points=[CommandHandlerFlood('headshot', poles.pre_headshot, filter_is_from_group)],
