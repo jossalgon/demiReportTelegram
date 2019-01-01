@@ -633,7 +633,7 @@ def main():
     dp.add_handler(MessageHandler(filter_wanted_words, send_wanted_word))
 
     dp.add_handler(CommandHandler('cancel', clean_keyboard, MergedFilter(Filters.user(user_id=62394824),
-                                                                         or_filter=Filters.user(user_id=10863271))))
+                                                                         or_filter=Filters.user(user_id=57233245))))
 
     dp.add_error_handler(log_error)
 
