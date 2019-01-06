@@ -115,11 +115,11 @@ def hipermierda(bot, update):
     bot.send_message(user_id, 'Jiji entra anda:', reply_markup=markup)
 
 
-def raulito_oro(bot, update):
+def viva_españa(bot, update):
     message = update.message
     if message.chat_id != group_id:
         return False
-    bot.send_message(message.chat_id, 'SIUUUUUUUUUUUUUUUUUUUUUUU', reply_to_message_id=message.message_id)
+    bot.send_message(message.chat_id, 'CLARO QUE SI JODER', reply_to_message_id=message.message_id)
 
 
 def send_selu_sticker(bot, update):
@@ -537,7 +537,7 @@ def main():
     dp.add_handler(MessageHandler(Filters.entity(MessageEntity.MENTION) & not_forwarded, mention_handler))
     dp.add_handler(RegexHandler(r'(?i)[\s\S]*hipertextual.com|[\s\S]*twitter\.com\/Hipertextual|[\s\S]*hiper.click',
                                 hipermierda, edited_updates=True))
-    dp.add_handler(RegexHandler(r'(?i)(?=.*es)(?=.*raulito)(?=.*oro)?', raulito_oro))
+    dp.add_handler(RegexHandler(r'(?i)(?=.*viva)(?=.*españa)(?=.*franco)?', viva_españa))
     dp.add_handler(RegexHandler(r'(?i).*y no [\w ]+ a[l]? selu\?.*', send_selu_sticker))
     dp.add_handler(InlineQueryHandler(inline_query))
     dp.add_handler(ChosenInlineResultHandler(inline_result, pass_user_data=True, pass_job_queue=True))
@@ -595,10 +595,10 @@ def main():
         dp.add_handler(CommandHandlerFlood(name.lower(), safe_report,
                                            MergedFilter(Filters.chat(chat_id=group_id), and_filter=filter_is_from_group),
                                            pass_job_queue=True))
-        dp.add_handler(CommandHandlerFlood('love' + name.lower(), safe_love,
-                                           MergedFilter(Filters.chat(chat_id=group_id),
-                                                        and_filter=filter_is_from_group),
-                                           pass_job_queue=True))
+        # dp.add_handler(CommandHandlerFlood('love' + name.lower(), safe_love,
+        #                                    MergedFilter(Filters.chat(chat_id=group_id),
+        #                                                 and_filter=filter_is_from_group),
+        #                                    pass_job_queue=True))
 
     headshot_handler = ConversationHandler(
         entry_points=[CommandHandlerFlood('headshot', poles.pre_headshot, filter_is_from_group)],
