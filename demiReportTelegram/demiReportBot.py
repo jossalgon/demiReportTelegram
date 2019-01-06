@@ -568,6 +568,7 @@ def main():
     dp.add_handler(CommandHandlerFlood('ninoninini', general.send_ninoninini, filter_is_from_group))
     dp.add_handler(CommandHandlerFlood('alerta', general.send_alerta, filter_is_from_group))
     dp.add_handler(CommandHandlerFlood('tq', general.send_tq, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('callate', general.send_callate, filter_is_from_group))
     dp.add_handler(CommandHandlerFlood('disculpa', general.send_disculpa, filter_is_from_group))
     dp.add_handler(CommandHandlerFlood('locura', general.send_locura, filter_is_from_group))
     dp.add_handler(CommandHandlerFlood('mecagoenlamadrequemepario', general.send_gritopokemon, filter_is_from_group))

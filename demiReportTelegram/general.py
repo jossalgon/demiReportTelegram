@@ -65,6 +65,15 @@ def send_tq(bot, update):
     audio.close()
 
 
+def send_callate(bot, update):
+    message = update.message
+    chat_id = message.chat.id
+    resource = 'data/voices/callate.ogg'
+    audio = open(os.path.join(os.path.dirname(sys.modules['demiReportTelegram'].__file__), resource), 'rb')
+    bot.send_audio(chat_id, audio)
+    audio.close()
+
+
 def send_disculpa(bot, update):
     chat_id = update.message.chat_id
     bot.send_message(chat_id, 'Disculpa por equivocarme, pero no soy perfecto, soy humano y cometo errores; '
