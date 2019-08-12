@@ -35,6 +35,7 @@ Submodule | Description
   DB_USER = YOUR_DB_USER
   DB_PASS = YOUR_DB_PASS
   DB_NAME = YOUR_DB_NAME
+  DB_PORT = YOUR_DB_PORT
   ```
 
 3. Run the bot

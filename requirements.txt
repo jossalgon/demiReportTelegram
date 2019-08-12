@@ -1,7 +1,7 @@
 requests
 python-telegram-bot
 ts3
-pymysql==0.8.1
+pymysql==0.9.3
 cleverwrap
 reportTelegram
 mcstatus

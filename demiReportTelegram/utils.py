@@ -26,9 +26,13 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 
 
+def create_connection():
+    return pymysql.connect(host=DB_HOST, user=DB_USER, password=DB_PASS, database=DB_NAME, port=DB_PORT)
+
+
 def get_user_ids():
     user_ids = []
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = create_connection()
     try:
         with con.cursor() as cur:
             cur.execute('SELECT UserId FROM Users')
@@ -52,7 +56,7 @@ def get_usernames(bot):
 
 
 def get_trolls():
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = create_connection()
     trolls = []
     try:
         with con.cursor() as cur:
@@ -69,7 +73,7 @@ def get_trolls():
 
 
 def get_not_mention(mention_type):
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = create_connection()
     not_mentions = []
     try:
         with con.cursor() as cur:
@@ -86,7 +90,7 @@ def get_not_mention(mention_type):
 
 
 def get_events():
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = create_connection()
     events = []
     try:
         with con.cursor() as cur:
@@ -103,7 +107,7 @@ def get_events():
 
 
 def get_event_text(event_id):
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = create_connection()
     res = ''
     try:
         with con.cursor() as cur:
@@ -118,7 +122,7 @@ def get_event_text(event_id):
 
 
 def get_event_message_id(event_id):
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = create_connection()
     res = ''
     try:
         with con.cursor() as cur:
@@ -133,7 +137,7 @@ def get_event_message_id(event_id):
 
 
 def get_vote(event_id, user_id):
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = create_connection()
     res = ''
     try:
         with con.cursor() as cur:
@@ -149,7 +153,7 @@ def get_vote(event_id, user_id):
 
 
 def get_participants_event(event_id):
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = create_connection()
     user_ids = [[], [], []]
     try:
         with con.cursor() as cur:
@@ -169,7 +173,7 @@ def get_participants_event(event_id):
 
 
 def is_long_event(event_id):
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = create_connection()
     res = ''
     try:
         with con.cursor() as cur:
@@ -184,7 +188,7 @@ def is_long_event(event_id):
 
 
 def create_event(event_id, message_id, text):
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = create_connection()
     pipas_date_search = re.search(r'\d{1,2}/\d{1,2}/\d{4}', text)
 
     try:
@@ -218,7 +222,7 @@ def create_event(event_id, message_id, text):
 
 
 def add_participant_event(event_id, user_id, selected):
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = create_connection()
     try:
         with con.cursor() as cur:
             cur.execute('INSERT INTO PipasVotes(eventId, userId, selected) VALUES(%s, %s, %s) '
@@ -255,7 +259,7 @@ def get_who_pipas():
 
 
 def mention_control(user_id, mention_type, silent):
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = create_connection()
     try:
         with con.cursor() as cur:
             if silent:
@@ -275,7 +279,7 @@ def mention_control(user_id, mention_type, silent):
 
 def get_wanted_words(user_id):
     words = {}
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = create_connection()
     try:
         with con.cursor() as cur:
             cur.execute('SELECT wordId, word FROM WantedWords WHERE userId=%s', (str(user_id),))
@@ -291,7 +295,7 @@ def get_wanted_words(user_id):
 
 
 def remove_wanted_word(word_id):
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = create_connection()
     try:
         with con.cursor() as cur:
             cur.execute('DELETE FROM WantedWords WHERE wordId=%s', (str(word_id),))
@@ -305,7 +309,7 @@ def remove_wanted_word(word_id):
 
 
 def is_wanted_word(word, user_id):
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = create_connection()
     res = False
     try:
         with con.cursor() as cur:
@@ -322,7 +326,7 @@ def is_wanted_word(word, user_id):
 
 
 def get_word(word_id):
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = create_connection()
     res = ''
     try:
         with con.cursor() as cur:
@@ -337,7 +341,7 @@ def get_word(word_id):
 
 
 def get_users_from_word(word):
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = create_connection()
     user_ids = list()
     try:
         with con.cursor() as cur:
@@ -354,7 +358,7 @@ def get_users_from_word(word):
 
 
 def get_all_words():
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = create_connection()
     words = list()
     try:
         with con.cursor() as cur:
@@ -371,7 +375,7 @@ def get_all_words():
 
 
 def is_silent_user(user_id, mention_type):
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = create_connection()
     res = False
     try:
         with con.cursor() as cur:
@@ -408,7 +412,7 @@ def change_group_name(name):
 
 
 def create_database():
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = create_connection()
     try:
         with con.cursor() as cur:
             cur.execute(
