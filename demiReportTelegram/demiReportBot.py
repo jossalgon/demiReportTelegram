@@ -283,6 +283,13 @@ def cancel(bot, update):
                     reply_markup=ReplyKeyboardRemove(selective=True))
     return ConversationHandler.END
 
+def cancelDuelo(bot, update):
+    message = update.message
+    bot.sendMessage(chat_id=message.chat_id, text='Cagao, que eres un cagao...',
+                    reply_to_message_id=message.message_id,
+                    reply_markup=ReplyKeyboardRemove(selective=True))
+    return ConversationHandler.END
+
 
 def clean_keyboard(bot, update):
     message = update.message
@@ -511,8 +518,8 @@ def callback_query_handler(bot, update, user_data, job_queue, chat_data):
 
 
 def main():
-    utils.create_database()
-    demi_utils.create_database()
+    #utils.create_database()
+    #demi_utils.create_database()
 
     updater = Updater(token=TG_TOKEN, workers=32)
     dp = updater.dispatcher
@@ -610,6 +617,16 @@ def main():
     )
     dp.add_handler(headshot_handler)
 
+    duelo_handler = ConversationHandler(
+        entry_points=[CommandHandlerFlood('duelo', poles.pre_duelo, filter_is_from_group)],
+        states={
+            0: [RegexHandler('^(%s)$' % '|'.join(utils.get_names()), poles.duelo, pass_job_queue=True)],
+        },
+
+        fallbacks=[CommandHandler('cancel', cancelDuelo), CommandHandler('mute', cancel), CommandHandler('addword', cancel)]
+    )
+    dp.add_handler(duelo_handler)
+
     mute_handler = ConversationHandler(
         entry_points=[CommandHandlerFlood('mute', poles.pre_mute, filter_is_from_group)],
         states={
@@ -617,7 +634,7 @@ def main():
         },
 
         fallbacks=[CommandHandler('cancel', cancel), CommandHandler('headshot', cancel),
-                   CommandHandler('addword', cancel)]
+                   CommandHandler('addword', cancel), CommandHandler('duelo', cancel)]
     )
     dp.add_handler(mute_handler)
 
@@ -628,7 +645,7 @@ def main():
         },
 
         fallbacks=[CommandHandler('cancel', cancel), CommandHandler('done', done),
-                   CommandHandler('headshot', cancel), CommandHandler('mute', cancel)]
+                   CommandHandler('headshot', cancel), CommandHandler('mute', cancel), CommandHandler('duelo', cancelDuelo)]
     )
     dp.add_handler(wanted_word_handler)
     dp.add_handler(MessageHandler(filter_wanted_words, send_wanted_word))

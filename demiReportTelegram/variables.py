@@ -17,7 +17,6 @@ DB_HOST = config['Database']['DB_HOST']
 DB_USER = config['Database']['DB_USER']
 DB_PASS = config['Database']['DB_PASS']
 DB_NAME = config['Database']['DB_NAME']
-DB_PORT = config['Database']['DB_PORT']
 
 minecraft_ip = config['APIS']['minecraft_ip']
 
@@ -27,6 +26,7 @@ pushover_client = config['APIS']['pushover_client']
 nuke = 30
 perros = 20
 HEADSHOT = 7
+DUELO = 3
 MUTE = 5
 MUTE_TIME = 600
 porn = True
