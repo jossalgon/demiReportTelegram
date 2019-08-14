@@ -16,7 +16,6 @@ import random
 import time
 import io
 
-import pymysql
 from reportTelegram import reports
 from reportTelegram import utils
 from reportTelegram import variables as report_variables
@@ -32,11 +31,6 @@ HEADSHOT = variables.HEADSHOT
 DUELO = variables.DUELO
 MUTE = variables.MUTE
 
-DB_HOST = variables.DB_HOST
-DB_USER = variables.DB_USER
-DB_PASS = variables.DB_PASS
-DB_NAME = variables.DB_NAME
-
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 logger = logging.getLogger(__name__)
@@ -45,7 +39,7 @@ logger = logging.getLogger(__name__)
 def pole_handler(user_id):
     poles = variables.poles
     is_saturday = (datetime.datetime.today().weekday() == 5)
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = demi_utils.create_connection()
     try:
         with con.cursor() as cur:
             if user_id in poles:
@@ -73,7 +67,7 @@ def pole_handler(user_id):
 def subpole_handler(user_id):
     poles = variables.poles
     is_saturday = (datetime.datetime.today().weekday() == 5)
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = demi_utils.create_connection()
     try:
         with con.cursor() as cur:
             if user_id in poles:
@@ -101,7 +95,7 @@ def subpole_handler(user_id):
 def tercercomentario_handler(user_id):
     poles = variables.poles
     is_saturday = (datetime.datetime.today().weekday() == 5)
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = demi_utils.create_connection()
     try:
         with con.cursor() as cur:
             if user_id in poles:
@@ -127,7 +121,7 @@ def tercercomentario_handler(user_id):
 
 
 def get_ranking():
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = demi_utils.create_connection()
     try:
         with con.cursor() as cur:
             cur.execute('SELECT UserId, Points FROM Ranking GROUP BY UserId, Points ORDER BY Points DESC')
@@ -149,7 +143,7 @@ def get_ranking():
 def send_nuke(bot, update):
     message = update.message
     user_id = message.from_user.id
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = demi_utils.create_connection()
     try:
         with con.cursor() as cur:
             cur.execute('SELECT Points FROM Ranking WHERE UserId = %s', (str(user_id),))
@@ -186,7 +180,7 @@ def send_nuke(bot, update):
 def send_perros(bot, update):
     message = update.message
     user_id = message.from_user.id
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = demi_utils.create_connection()
     try:
         with con.cursor() as cur:
             cur.execute('SELECT Points FROM Ranking WHERE UserId = %s', (str(user_id),))
@@ -253,6 +247,7 @@ def pre_headshot(bot, update):
     else:
         return ConversationHandler.END
 
+
 @run_async
 def pre_duelo(bot, update):
     message = update.message
@@ -266,10 +261,11 @@ def pre_duelo(bot, update):
     else:
         return ConversationHandler.END
 
+
 def check_points(bot, update, points):
     message = update.message
     user_id = message.from_user.id
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = demi_utils.create_connection()
     try:
         with con.cursor() as cur:
             cur.execute('SELECT Points FROM Ranking WHERE UserId = %s', (str(user_id),))
@@ -296,7 +292,7 @@ def duelo(bot, update, job_queue):
     message = update.message
     user_id = message.from_user.id
     name = update.message.text
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = demi_utils.create_connection()
     random = random.randint(0, 1)
     if not check_points(bot, update, DUELO):
         return ConversationHandler.END
@@ -306,8 +302,8 @@ def duelo(bot, update, job_queue):
         for i in range(4, -1, -1):
             text = 'El DUELO COMIENZA EN %d SEG.' % i
             try:
-                bot.edit_message_text(text, chat_id=group_id, message_id=msg.message_id, parse_mode='Markdown')
                 time.sleep(1)
+                bot.edit_message_text(text, chat_id=group_id, message_id=msg.message_id, parse_mode='Markdown')
             except TimedOut:
                 pass
 
@@ -357,7 +353,7 @@ def headshot(bot, update, job_queue):
     user_id = message.from_user.id
     name = update.message.text
     reported = utils.get_user_id(name)
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = demi_utils.create_connection()
 
     if not check_points(bot, update, HEADSHOT):
         return ConversationHandler.END
@@ -396,7 +392,7 @@ def headshot(bot, update, job_queue):
 
 @run_async
 def cuenta_all(bot, user_ids):
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = demi_utils.create_connection()
     for user_id in user_ids:
         chat_member = bot.get_chat_member(group_id, user_id)
         user_data = report_variables.user_data_dict[user_id]
@@ -452,7 +448,7 @@ def mute(bot, update):
     user_id = message.from_user.id
     name = update.message.text
     reported = utils.get_user_id(name)
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = demi_utils.create_connection()
 
     if not check_points(bot, update, MUTE):
         return ConversationHandler.END
@@ -542,7 +538,7 @@ def change_group_name_bot(bot, update):
         bot.send_message(chat_id, 'Aviso ese nombre es mu largo acho', reply_to_message_id=message.message_id)
         name = name[:30]
 
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = demi_utils.create_connection()
     try:
         with con.cursor() as cur:
             cur.execute('UPDATE GroupNames SET groupName = %s  WHERE position = %s', (str(name), str(position)))
