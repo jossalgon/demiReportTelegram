@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 def create_connection():
-    return pymysql.connect(host=DB_HOST, user=DB_USER, password=DB_PASS, database=DB_NAME, port=DB_PORT)
+    return pymysql.connect(host=DB_HOST, user=DB_USER, password=DB_PASS, database=DB_NAME)
 
 
 def get_user_ids():
@@ -45,6 +45,23 @@ def get_user_ids():
         if con:
             con.close()
         return user_ids
+
+
+def get_user_name(id):
+    user_name = []
+    con = create_connection()
+    try:
+        with con.cursor() as cur:
+            cur.execute('SELECT Name FROM Users Where UserId=%s' % id)
+            rows = cur.fetchall()
+            for row in rows:
+                user_name.append(row[0])
+    except Exception:
+        logger.error('Fatal error in is_from_group', exc_info=True)
+    finally:
+        if con:
+            con.close()
+        return user_name
 
 
 def get_usernames(bot):

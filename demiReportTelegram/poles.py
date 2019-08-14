@@ -29,6 +29,7 @@ group_id = variables.group_id
 PERROS = variables.perros
 NUKE = variables.nuke
 HEADSHOT = variables.HEADSHOT
+DUELO = variables.DUELO
 MUTE = variables.MUTE
 
 DB_HOST = variables.DB_HOST
@@ -134,8 +135,8 @@ def get_ranking():
             top = '🏆 Ranking:\n*1º - %s (%d ptos)*\n' % (utils.get_name(rows[0][0]), rows[0][1])
             for row, pos in zip(rows[1:], range(2, len(rows)+1)):
                 top += '%dº - %s (%d ptos)\n' % (pos, utils.get_name(row[0]), row[1])
-            top += '\n🤐 Mute por %d ptos.\n🎯 Headshot por %d ptos.\n🐺 Perros por %d ptos.\n☢ Nuke por %d ptos.' % \
-                   (MUTE, HEADSHOT, PERROS, NUKE)
+            top += '\n🤐 Mute por %d ptos.\n🎯 Headshot por %d ptos.\n🐺 Perros por %d ptos.\n☢ Nuke por %d ptos.\n🎯 Duelo por %d ptos.' % \
+                   (MUTE, HEADSHOT, PERROS, NUKE, DUELO)
             return top
     except Exception:
         logger.error('Fatal error in get_ranking', exc_info=True)
@@ -252,6 +253,18 @@ def pre_headshot(bot, update):
     else:
         return ConversationHandler.END
 
+@run_async
+def pre_duelo(bot, update):
+    message = update.message
+    names = utils.get_names()
+    reply_keyboard = [names[i:i + 3] for i in range(0, len(names), 3)]
+    if check_points(bot, update, DUELO):
+        bot.send_message(message.chat_id, '🎯 Retar a un duelo A ...\n\nO /cancel para cancelar el tiro',
+                         reply_to_message_id=message.message_id,
+                         reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True, selective=True))
+        return 0
+    else:
+        return ConversationHandler.END
 
 def check_points(bot, update, points):
     message = update.message
@@ -275,6 +288,67 @@ def check_points(bot, update, points):
     finally:
         if con:
             con.close()
+
+
+@run_async
+def duelo(bot, update, job_queue):
+    import random
+    message = update.message
+    user_id = message.from_user.id
+    name = update.message.text
+    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    random = random.randint(0, 1)
+    if not check_points(bot, update, DUELO):
+        return ConversationHandler.END
+    try:
+        bot.send_document(group_id, 'https://i.imgur.com/sPtm88C.mp4')
+        msg = bot.send_message(group_id, 'El DUELO COMIENZA EN 5 SEG.', parse_mode='Markdown')
+        for i in range(4, -1, -1):
+            text = 'El DUELO COMIENZA EN %d SEG.' % i
+            try:
+                bot.edit_message_text(text, chat_id=group_id, message_id=msg.message_id, parse_mode='Markdown')
+                time.sleep(1)
+            except TimedOut:
+                pass
+
+        if random == 0:
+            reported = user_id
+            name = utils.get_name(reported)
+            bot.send_message(variables.group_id, 'Tiras los dados, fallas y te marcas un Froilán')
+        else:
+            reported = utils.get_user_id(name)
+            bot.send_message(variables.group_id, 'Has ganado por esta vez, no habrá tanta suerte la próxima')
+
+        resource = 'data/gifs/duelo/fail.mp4'
+        gif_path = os.path.join(os.path.dirname(sys.modules['demiReportTelegram'].__file__), resource)
+        if os.path.isfile(gif_path):
+            gif1, gif2 = open(gif_path, 'rb'), open(gif_path, 'rb')
+        else:
+            gif1 = gif2 = 'data/gifs/duelo/ganador.mp4'
+
+        with con.cursor() as cur:
+            cur.execute('UPDATE Ranking SET Points = Points - %s WHERE UserId = %s',
+                        (str(DUELO), str(user_id)))
+
+        if message.chat.type == 'private':
+            bot.send_document(user_id, gif2, reply_to_message_id=message.message_id,
+                              reply_markup=ReplyKeyboardRemove(selective=True))
+            bot.send_document(group_id, gif1)
+        else:
+            bot.send_document(group_id, gif1, reply_to_message_id=message.message_id,
+                              reply_markup=ReplyKeyboardRemove(selective=True))
+        if not isinstance(gif1, str):
+            gif1.close()
+            gif2.close()
+        thr1 = threading.Thread(target=reports.counter, args=(bot, name, reported, job_queue))
+        thr1.start()
+    except Exception:
+        logger.error('Fatal error in duelo', exc_info=True)
+    finally:
+        if con:
+            con.commit()
+            con.close()
+        return ConversationHandler.END
 
 
 @run_async
