@@ -300,10 +300,7 @@ def duelo(bot, update, job_queue):
         bot.send_document(group_id, 'https://i.imgur.com/eK86rUd.gif')
         msg = bot.send_message(group_id, 'Es hora del DU DU DU DUELO!', parse_mode='Markdown')
         for i in range(3, 0, -1):
-            try:
-                time.sleep(1)
-            except TimedOut:
-                pass
+            time.sleep(1)
 
         if random == 0:
             reported = user_id
