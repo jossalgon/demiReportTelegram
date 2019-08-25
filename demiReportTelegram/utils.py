@@ -409,18 +409,18 @@ def is_silent_user(user_id, mention_type):
 
 
 def login_account():
-    os.system("./../tg/bin/telegram-cli -W -e 'status_online'")
-    os.system("./../tg/bin/telegram-cli -W -e 'status_offline'")
+    os.system("telegram-cli -W -e 'status_online'")
+    os.system("telegram-cli -W -e 'status_offline'")
 
 
 def change_group_photo():
-    os.system("./../tg/bin/telegram-cli -W -e 'channel_set_photo channel#1060426760 photo.jpg'")
-    os.system("./../tg/bin/telegram-cli -W -e 'status_offline'")
+    os.system("telegram-cli -W -e 'channel_set_photo channel#1060426760 photo.jpg'")
+    os.system("telegram-cli -W -e 'status_offline'")
 
 
 def set_power(power):
-    os.system("./../tg/bin/telegram-cli -W -e 'channel_set_admin channel#1060426760 Selu %i'" % power)
-    os.system("./../tg/bin/telegram-cli -W -e 'status_offline'")
+    os.system("tg/bin/telegram-cli -W -e 'channel_set_admin channel#1060426760 Selu %i'" % power)
+    os.system("tg/bin/telegram-cli -W -e 'status_offline'")
 
 
 def change_group_name(name):

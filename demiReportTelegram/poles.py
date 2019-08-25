@@ -261,6 +261,15 @@ def pre_duelo(bot, update):
     else:
         return ConversationHandler.END
 
+@run_async
+def pre_apuesta(bot, update):
+    message = update.message
+    numbers = ['1','3','5','10','20','100']
+    reply_keyboard = [numbers[i:i + 3] for i in range(0, len(numbers), 3)]
+    bot.send_message(message.chat_id, 'Apuesta una cantidad de puntos y ¡gana! o /cancel si no tienes huevos',
+                     reply_to_message_id=message.message_id,
+                     reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True, selective=True))
+    return 0
 
 def check_points(bot, update, points):
     message = update.message
@@ -285,6 +294,56 @@ def check_points(bot, update, points):
         if con:
             con.close()
 
+@run_async
+def apuesta(bot, update, job_queue):
+    import random
+    message = update.message
+    user_id = message.from_user.id
+    puntos_apostados = update.message.text
+    con = demi_utils.create_connection()
+    if not check_points(bot, update, int(puntos_apostados)):
+        bot.send_message(group_id, 'No tienes puntos suficientes')
+        return ConversationHandler.END
+    try:
+        bot.send_document(message.chat_id, 'https://media.giphy.com/media/GWS8bXKxphfEI/giphy.gif')
+        msg = bot.send_message(message.chat_id, 'Resultado en 5.', parse_mode='Markdown')
+        for i in range(4, -1, -1):
+            text = 'Resultado en %d.' % i
+            try:
+                time.sleep(1)
+                bot.edit_message_text(text, chat_id=message.chat_id, message_id=msg.message_id, parse_mode='Markdown')
+            except TimedOut:
+                pass
+            
+        lucky = random.randint(0, 99)
+        if lucky < 50:
+            bot.send_message(message.chat_id, '¡PIERDES!')
+            bot.send_document(message.chat_id, 'https://static.wixstatic.com/media/86126b_108f3114017d4f83a1a3348ecbc8af1b~mv2.gif')
+            with con.cursor() as cur:
+                cur.execute('UPDATE Ranking SET Points = Points - %s WHERE UserId = %s',
+                            (str(puntos_apostados), str(user_id)))
+        if lucky > 50 and lucky < 99:
+            bot.send_message(message.chat_id, '¡GANAS ' + puntos_apostados + ' puntos!')
+            bot.send_document(message.chat_id, 'https://media.giphy.com/media/pPzjpxJXa0pna/giphy.gif')
+            with con.cursor() as cur:
+                cur.execute('UPDATE Ranking SET Points = Points + %s WHERE UserId = %s',
+                            (str(puntos_apostados), str(user_id)))
+        elif lucky == 99:
+            bot.send_message(message.chat_id, 'GG EZ +' + puntos_apostados*13 + ' puntos!')
+            bot.send_document(message.chat_id, 'https://media.giphy.com/media/hv4TC2Ide8rDoXy0iK/giphy.gif')
+            with con.cursor() as cur:
+                cur.execute('UPDATE Ranking SET Points = Points + %s WHERE UserId = %s',
+                            (str(puntos_apostados*13), str(user_id)))
+
+    except Exception:
+        logger.error('Fatal error in apuesta', exc_info=True)
+    finally:
+        if con:
+            con.commit()
+            con.close()
+        return ConversationHandler.END
+
+    return ConversationHandler.END
 
 @run_async
 def duelo(bot, update, job_queue):
