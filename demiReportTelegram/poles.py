@@ -207,10 +207,10 @@ def cuenta_perros(bot, user_id=None, message=None):
     if message:
         bot.send_message(message.chat_id, 'ORDEN RECIBIDA lanzando perros',
                          reply_to_message_id=message.message_id)
-    msg = bot.send_message(group_id, 'perros EN *5 SEG.*', parse_mode='Markdown')
+    msg = bot.send_message(group_id, 'Perros fachas EN *5 SEG.*', parse_mode='Markdown')
     time.sleep(1)
     for i in range(4, -1, -1):
-        text = 'perros EN *%d SEG.*' % i
+        text = 'Perros fachas EN *%d SEG.*' % i
         try:
             bot.edit_message_text(text, chat_id=group_id, message_id=msg.message_id, parse_mode='Markdown')
             time.sleep(1)
@@ -356,30 +356,26 @@ def duelo(bot, update, job_queue):
     if not check_points(bot, update, DUELO):
         return ConversationHandler.END
     try:
-        bot.send_document(group_id, 'https://i.imgur.com/sPtm88C.mp4')
-        msg = bot.send_message(group_id, 'El DUELO COMIENZA EN 5 SEG.', parse_mode='Markdown')
-        for i in range(4, -1, -1):
-            text = 'El DUELO COMIENZA EN %d SEG.' % i
-            try:
-                time.sleep(1)
-                bot.edit_message_text(text, chat_id=group_id, message_id=msg.message_id, parse_mode='Markdown')
-            except TimedOut:
-                pass
+        bot.send_document(group_id, 'https://i.imgur.com/eK86rUd.gif')
+        msg = bot.send_message(group_id, 'Es hora del DU DU DU DUELO!', parse_mode='Markdown')
+        for i in range(3, 0, -1):
+            time.sleep(1)
 
         if random == 0:
             reported = user_id
+            bot.send_message(variables.group_id, name + ' tenía una carta trampa y pierdes')
             name = utils.get_name(reported)
-            bot.send_message(variables.group_id, 'Tiras los dados, fallas y te marcas un Froilán')
+            resource = 'data/gifs/duelo/bewd.mp4'
         else:
             reported = utils.get_user_id(name)
-            bot.send_message(variables.group_id, 'Has ganado por esta vez, no habrá tanta suerte la próxima')
+            bot.send_message(variables.group_id, 'Sacas a Exodia y ganas automáticamente')
+            resource = 'data/gifs/duelo/exodia.mp4'
 
-        resource = 'data/gifs/duelo/fail.mp4'
         gif_path = os.path.join(os.path.dirname(sys.modules['demiReportTelegram'].__file__), resource)
         if os.path.isfile(gif_path):
             gif1, gif2 = open(gif_path, 'rb'), open(gif_path, 'rb')
         else:
-            gif1 = gif2 = 'data/gifs/duelo/ganador.mp4'
+            gif1 = gif2 = 'data/gifs/duelo/exodia.mp4'
 
         with con.cursor() as cur:
             cur.execute('UPDATE Ranking SET Points = Points - %s WHERE UserId = %s',
@@ -621,3 +617,18 @@ def change_group_name_bot(bot, update):
 def run_daily_perros(bot, job):
     if random.random() < 0.15:
         cuenta_perros(bot)
+
+
+def daily_reward(bot, job):
+    bot.send_message(group_id, 'RECOMPENSA DIARIA AÑADIDA', parse_mode='Markdown')
+    con = demi_utils.create_connection()
+    try:
+        with con.cursor() as cur:
+            cur.execute('UPDATE Ranking SET Points = Points + 1')
+    except Exception:
+        logger.error('Fatal error in daily_rewards', exc_info=True)
+    finally:
+        if con:
+            con.commit()
+            con.close()
+    bot.send_message(group_id, get_ranking(), parse_mode='Markdown')
