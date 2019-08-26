@@ -460,9 +460,6 @@ def login_account(bot, job):
 def pole_timer(job_queue):
     x = datetime.datetime.today()
     y = x.replace(day=x.day, hour=23, minute=59, second=55, microsecond=0)
-    # Para desarrollo usar el import timedelta y la variable 'y' de abajo, para producción la de arriba
-    #from datetime import timedelta
-    #y = x + timedelta(seconds=10)
     y2 = x.replace(day=x.day, hour=1, minute=00, second=00, microsecond=0) + datetime.timedelta(days=1)
     delta_t = y - x
     delta_t2 = y2 - x
