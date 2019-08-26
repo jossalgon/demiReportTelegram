@@ -145,9 +145,15 @@ def get_rankingGastaPuntos():
         with con.cursor() as cur:
             cur.execute('SELECT UserId, Veces FROM Usos GROUP BY UserId, Veces ORDER BY Veces DESC')
             rows = cur.fetchall()
-            top = '🏅 Ranking puntos gastados:\n*1º - %s (%d ptos)*\n' % (utils.get_name(rows[0][0]), rows[0][1])
+            if rows[0][1] == 0:
+                top = '💸 Ranking puntos gastados:\n*1º - %s (%d ptos)*\n' % (utils.get_name(rows[0][0]), rows[0][1])
+            else:
+                top = '💸 Ranking puntos gastados:\n*1º - %s (-%d ptos)*\n' % (utils.get_name(rows[0][0]), rows[0][1])
             for row, pos in zip(rows[1:], range(2, len(rows)+1)):
-                top += '%dº - %s (%d ptos)\n' % (pos, utils.get_name(row[0]), row[1])
+                if row[1] == 0:
+                    top += '%dº - %s (%d ptos)\n' % (pos, utils.get_name(row[0]), row[1])
+                else:
+                    top += '%dº - %s (-%d ptos)\n' % (pos, utils.get_name(row[0]), row[1])
             return top
     except Exception:
         logger.error('Fatal error in get_rankingGastaPuntos', exc_info=True)
