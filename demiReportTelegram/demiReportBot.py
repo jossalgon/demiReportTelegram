@@ -172,6 +172,12 @@ def ranking(bot, update):
     bot.send_message(message.chat_id, res, parse_mode='Markdown')
 
 
+def rankingGastaPuntos(bot, update):
+    message = update.message
+    res = poles.get_rankingGastaPuntos()
+    bot.send_message(message.chat_id, res, parse_mode='Markdown')
+
+
 def filter_pole_reward(msg):
     return Filters.private(msg) and Filters.photo(msg) \
            and variables.poles \
@@ -553,6 +559,7 @@ def main():
     dp.add_handler(RegexHandler(r'(?i)su+bpo+le+.*', subpole_handler))
     dp.add_handler(RegexHandler(r'(?i)tercer comentario+.*', tercercomentario_handler))
     dp.add_handler(CommandHandlerFlood('ranking', ranking, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('gastados', rankingGastaPuntos, filter_is_from_group))
     dp.add_handler(CommandHandlerFlood('nuke', poles.send_nuke, filter_is_from_group))
     dp.add_handler(CommandHandlerFlood('perros', poles.send_perros, filter_is_from_group))
     dp.add_handler(MessageHandler(filter_pole_reward, poles.change_group_photo_bot))
