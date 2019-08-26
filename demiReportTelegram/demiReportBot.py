@@ -467,6 +467,7 @@ def pole_timer(job_queue):
     secs2 = delta_t2.seconds + 1
     job_queue.run_daily(callback=demi_utils.pole_counter, time=secs)
     job_queue.run_daily(callback=poles.run_daily_perros, time=secs-20)
+    job_queue.run_daily(callback=poles.daily_reward, time=secs+60)
     job_queue.run_daily(callback=variables.clean_poles, time=secs2)
     job_queue.run_repeating(callback=login_account, interval=datetime.timedelta(days=30), first=5)
 

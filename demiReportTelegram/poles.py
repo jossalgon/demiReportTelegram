@@ -558,3 +558,18 @@ def change_group_name_bot(bot, update):
 def run_daily_perros(bot, job):
     if random.random() < 0.15:
         cuenta_perros(bot)
+
+
+def daily_reward(bot, job):
+    bot.send_message(group_id, 'RECOMPENSA DIARIA AÑADIDA', parse_mode='Markdown')
+    con = demi_utils.create_connection()
+    try:
+        with con.cursor() as cur:
+            cur.execute('UPDATE Ranking SET Points = Points + 1')
+    except Exception:
+        logger.error('Fatal error in daily_rewards', exc_info=True)
+    finally:
+        if con:
+            con.commit()
+            con.close()
+    bot.send_message(group_id, get_ranking(), parse_mode='Markdown')
