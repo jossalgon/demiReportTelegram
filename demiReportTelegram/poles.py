@@ -139,7 +139,7 @@ def get_ranking():
             con.close()
 
 
-def get_rankingGastaPuntos():
+def get_ranking_gasta_puntos():
     con = demi_utils.create_connection()
     try:
         with con.cursor() as cur:
@@ -156,7 +156,7 @@ def get_rankingGastaPuntos():
                     top += '%dº - %s (-%d ptos)\n' % (pos, utils.get_name(row[0]), row[1])
             return top
     except Exception:
-        logger.error('Fatal error in get_rankingGastaPuntos', exc_info=True)
+        logger.error('Fatal error in get_ranking_gasta_puntos', exc_info=True)
     finally:
         if con:
             con.close()
@@ -286,6 +286,7 @@ def pre_duelo(bot, update):
     else:
         return ConversationHandler.END
 
+
 @run_async
 def pre_apuesta(bot, update):
     message = update.message
@@ -295,6 +296,7 @@ def pre_apuesta(bot, update):
                      reply_to_message_id=message.message_id,
                      reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True, selective=True))
     return 0
+
 
 def check_points(bot, update, points):
     message = update.message
@@ -319,6 +321,7 @@ def check_points(bot, update, points):
         if con:
             con.close()
 
+
 @run_async
 def apuesta(bot, update, job_queue):
     import random
@@ -335,15 +338,16 @@ def apuesta(bot, update, job_queue):
             time.sleep(3)
         except TimedOut:
             pass
-            
+
         lucky = random.randint(0, 99)
         if lucky < 50:
             with con.cursor() as cur:
                 cur.execute('UPDATE Ranking SET Points = Points - %s WHERE UserId = %s',
                             (str(int(puntos_apostados)), str(user_id)))
+                cur.execute('UPDATE Usos SET Veces = Veces + %s WHERE UserId = %s', (str(int(puntos_apostados)), str(user_id)))
             bot.send_message(message.chat_id, '¡PIERDES ' + str(int(puntos_apostados)) + ' puntos! Puntos actuales: ' + puntos_actuales(user_id, con))
             bot.send_document(message.chat_id, 'https://media.giphy.com/media/3o6UB5RrlQuMfZp82Y/giphy.gif')
-        if lucky >= 50 and lucky < 99:
+        if 50 <= lucky < 99:
             with con.cursor() as cur:
                 cur.execute('UPDATE Ranking SET Points = Points + %s WHERE UserId = %s',
                             (str(int(puntos_apostados)), str(user_id)))
@@ -361,15 +365,15 @@ def apuesta(bot, update, job_queue):
         if con:
             con.commit()
             con.close()
-        return ConversationHandler.END
-
     return ConversationHandler.END
+
 
 def puntos_actuales(user_id, con):
     with con.cursor() as cur:
         cur.execute('SELECT Points FROM Ranking WHERE UserId = %s',
                     (str(user_id)))
     return str(cur.fetchone()[0])
+
 
 @run_async
 def duelo(bot, update, job_queue):
