@@ -290,6 +290,12 @@ def cancelDuelo(bot, update):
                     reply_markup=ReplyKeyboardRemove(selective=True))
     return ConversationHandler.END
 
+def cancelApuesta(bot, update):
+    message = update.message
+    bot.sendMessage(chat_id=message.chat_id, text='Tantos puntos y tan pocos cojones...',
+                    reply_to_message_id=message.message_id,
+                    reply_markup=ReplyKeyboardRemove(selective=True))
+    return ConversationHandler.END
 
 def clean_keyboard(bot, update):
     message = update.message
@@ -628,6 +634,16 @@ def main():
     )
     dp.add_handler(duelo_handler)
 
+    apuesta_handler = ConversationHandler(
+        entry_points=[CommandHandlerFlood('apuesta', poles.pre_apuesta, filter_is_from_group)],
+        states={
+            0: [RegexHandler('^[0-9]*$', poles.apuesta, pass_job_queue=True)],
+        },
+
+        fallbacks=[CommandHandler('cancel', cancelApuesta), CommandHandler('mute', cancel), CommandHandler('addword', cancel)]
+    )
+    dp.add_handler(apuesta_handler)
+
     mute_handler = ConversationHandler(
         entry_points=[CommandHandlerFlood('mute', poles.pre_mute, filter_is_from_group)],
         states={
@@ -646,7 +662,8 @@ def main():
         },
 
         fallbacks=[CommandHandler('cancel', cancel), CommandHandler('done', done),
-                   CommandHandler('headshot', cancel), CommandHandler('mute', cancel), CommandHandler('duelo', cancelDuelo)]
+                   CommandHandler('headshot', cancel), CommandHandler('mute', cancel), CommandHandler('duelo', cancelDuelo),
+                   CommandHandler('apuesta', cancelApuesta)]
     )
     dp.add_handler(wanted_word_handler)
     dp.add_handler(MessageHandler(filter_wanted_words, send_wanted_word))
