@@ -618,7 +618,7 @@ def main():
     dp.add_handler(headshot_handler)
 
     duelo_handler = ConversationHandler(
-        entry_points=[CommandHandlerFlood('duelo', poles.pre_duelo, filter_is_from_group)],
+        entry_points=[CommandHandlerFlood('dudududuelo', poles.pre_duelo, filter_is_from_group)],
         states={
             0: [RegexHandler('^(%s)$' % '|'.join(utils.get_names()), poles.duelo, pass_job_queue=True)],
         },
