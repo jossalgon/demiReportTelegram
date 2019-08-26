@@ -129,11 +129,34 @@ def get_ranking():
             top = '🏆 Ranking:\n*1º - %s (%d ptos)*\n' % (utils.get_name(rows[0][0]), rows[0][1])
             for row, pos in zip(rows[1:], range(2, len(rows)+1)):
                 top += '%dº - %s (%d ptos)\n' % (pos, utils.get_name(row[0]), row[1])
-            top += '\n🤐 Mute por %d ptos.\n🎯 Headshot por %d ptos.\n🐺 Perros por %d ptos.\n☢ Nuke por %d ptos.\n🎯 Duelo por %d ptos.' % \
-                   (MUTE, HEADSHOT, PERROS, NUKE, DUELO)
+            top += '\n🔫 Duelo por %d ptos.\n🤐 Mute por %d ptos.\n🎯 Headshot por %d ptos.\n🐺 Perros por %d ptos.\n☢ Nuke por %d ptos.' % \
+                   (DUELO, MUTE, HEADSHOT, PERROS, NUKE)
             return top
     except Exception:
         logger.error('Fatal error in get_ranking', exc_info=True)
+    finally:
+        if con:
+            con.close()
+
+
+def get_rankingGastaPuntos():
+    con = demi_utils.create_connection()
+    try:
+        with con.cursor() as cur:
+            cur.execute('SELECT UserId, Veces FROM Usos GROUP BY UserId, Veces ORDER BY Veces DESC')
+            rows = cur.fetchall()
+            if rows[0][1] == 0:
+                top = '💸 Ranking puntos gastados:\n*1º - %s (%d ptos)*\n' % (utils.get_name(rows[0][0]), rows[0][1])
+            else:
+                top = '💸 Ranking puntos gastados:\n*1º - %s (-%d ptos)*\n' % (utils.get_name(rows[0][0]), rows[0][1])
+            for row, pos in zip(rows[1:], range(2, len(rows)+1)):
+                if row[1] == 0:
+                    top += '%dº - %s (%d ptos)\n' % (pos, utils.get_name(row[0]), row[1])
+                else:
+                    top += '%dº - %s (-%d ptos)\n' % (pos, utils.get_name(row[0]), row[1])
+            return top
+    except Exception:
+        logger.error('Fatal error in get_rankingGastaPuntos', exc_info=True)
     finally:
         if con:
             con.close()
@@ -150,6 +173,7 @@ def send_nuke(bot, update):
             user_points = cur.fetchone()[0]
             if user_points >= NUKE:
                 cur.execute('UPDATE Ranking SET Points = Points - %s WHERE UserId = %s', (str(NUKE), str(user_id)))
+                cur.execute('UPDATE Usos SET Veces = Veces + %s WHERE UserId = %s', (str(NUKE), str(user_id)))
                 bot.send_document(group_id, 'http://imgur.com/vZDxkFk.gif')
                 audio = open(os.path.join(os.path.dirname(sys.modules['demiReportTelegram'].__file__), 'data/voices/nuke.ogg'),
                              'rb')
@@ -188,6 +212,7 @@ def send_perros(bot, update):
             if user_points >= PERROS:
                 cur.execute('UPDATE Ranking SET Points = Points - %s WHERE UserId = %s',
                             (str(PERROS), str(user_id)))
+                cur.execute('UPDATE Usos SET Veces = Veces + %s WHERE UserId = %s', (str(PERROS), str(user_id)))
                 cuenta_perros(bot, user_id, message)
             else:
                 bot.send_message(message.chat_id,
@@ -381,7 +406,7 @@ def duelo(bot, update, job_queue):
         with con.cursor() as cur:
             cur.execute('UPDATE Ranking SET Points = Points - %s WHERE UserId = %s',
                         (str(DUELO), str(user_id)))
-
+            cur.execute('UPDATE Usos SET Veces = Veces + %s WHERE UserId = %s', (str(DUELO), str(user_id)))
         if message.chat.type == 'private':
             bot.send_document(user_id, gif2, reply_to_message_id=message.message_id,
                               reply_markup=ReplyKeyboardRemove(selective=True))
@@ -424,7 +449,7 @@ def headshot(bot, update, job_queue):
         with con.cursor() as cur:
             cur.execute('UPDATE Ranking SET Points = Points - %s WHERE UserId = %s',
                         (str(HEADSHOT), str(user_id)))
-
+            cur.execute('UPDATE Usos SET Veces = Veces + %s WHERE UserId = %s', (str(HEADSHOT), str(user_id)))
         if message.chat.type == 'private':
             bot.send_document(user_id, gif2, reply_to_message_id=message.message_id,
                               reply_markup=ReplyKeyboardRemove(selective=True))
@@ -512,7 +537,7 @@ def mute(bot, update):
         with con.cursor() as cur:
             cur.execute('UPDATE Ranking SET Points = Points - %s WHERE UserId = %s',
                         (str(MUTE), str(user_id)))
-
+            cur.execute('UPDATE Usos SET Veces = Veces + %s WHERE UserId = %s', (str(MUTE), str(user_id)))
         text = 'Mira %s que te calles la puta boca 🤐\nCon amor @%s' % (name, message.from_user.username)
         bot.send_message(group_id, text, reply_markup=ReplyKeyboardRemove(selective=True))
         if message.chat.type == 'private':
