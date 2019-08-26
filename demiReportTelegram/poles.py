@@ -129,8 +129,8 @@ def get_ranking():
             top = '🏆 Ranking:\n*1º - %s (%d ptos)*\n' % (utils.get_name(rows[0][0]), rows[0][1])
             for row, pos in zip(rows[1:], range(2, len(rows)+1)):
                 top += '%dº - %s (%d ptos)\n' % (pos, utils.get_name(row[0]), row[1])
-            top += '\n🤐 Mute por %d ptos.\n🎯 Headshot por %d ptos.\n🐺 Perros por %d ptos.\n☢ Nuke por %d ptos.\n🎯 Duelo por %d ptos.' % \
-                   (MUTE, HEADSHOT, PERROS, NUKE, DUELO)
+            top += '\n🔫 Duelo por %d ptos.\n🤐 Mute por %d ptos.\n🎯 Headshot por %d ptos.\n🐺 Perros por %d ptos.\n☢ Nuke por %d ptos.' % \
+                   (DUELO, MUTE, HEADSHOT, PERROS, NUKE)
             return top
     except Exception:
         logger.error('Fatal error in get_ranking', exc_info=True)
