@@ -315,20 +315,20 @@ def apuesta(bot, update, job_queue):
         if lucky < 50:
             with con.cursor() as cur:
                 cur.execute('UPDATE Ranking SET Points = Points - %s WHERE UserId = %s',
-                            (str(puntos_apostados), str(user_id)))
-            bot.send_message(message.chat_id, '¡PIERDES ' + puntos_apostados + ' puntos! Puntos actuales: ' + puntos_actuales(user_id, con))
+                            (str(int(puntos_apostados)), str(user_id)))
+            bot.send_message(message.chat_id, '¡PIERDES ' + str(int(puntos_apostados)) + ' puntos! Puntos actuales: ' + puntos_actuales(user_id, con))
             bot.send_document(message.chat_id, 'https://media.giphy.com/media/3o6UB5RrlQuMfZp82Y/giphy.gif')
-        if lucky > 50 and lucky < 99:
+        if lucky >= 50 and lucky < 99:
             with con.cursor() as cur:
                 cur.execute('UPDATE Ranking SET Points = Points + %s WHERE UserId = %s',
-                            (str(puntos_apostados), str(user_id)))
-            bot.send_message(message.chat_id, '¡GANAS ' + puntos_apostados + ' puntos! Puntos actuales: ' + puntos_actuales(user_id, con))
+                            (str(int(puntos_apostados)), str(user_id)))
+            bot.send_message(message.chat_id, '¡GANAS ' + str(int(puntos_apostados)) + ' puntos! Puntos actuales: ' + puntos_actuales(user_id, con))
             bot.send_document(message.chat_id, 'https://media.giphy.com/media/pPzjpxJXa0pna/giphy.gif')
         elif lucky == 99:
             with con.cursor() as cur:
                 cur.execute('UPDATE Ranking SET Points = Points + %s WHERE UserId = %s',
-                            (str(puntos_apostados*13), str(user_id)))
-            bot.send_message(message.chat_id, 'GG EZ +' + puntos_apostados*13 + ' puntos! Puntos actuales: ' + puntos_actuales(user_id, con))
+                            (str(int(puntos_apostados)*13), str(user_id)))
+            bot.send_message(message.chat_id, 'GG EZ +' + str(int(puntos_apostados)*13) + ' puntos! Puntos actuales: ' + puntos_actuales(user_id, con))
             bot.send_document(message.chat_id, 'https://media.giphy.com/media/hv4TC2Ide8rDoXy0iK/giphy.gif')
     except Exception:
         logger.error('Fatal error in apuesta', exc_info=True)
