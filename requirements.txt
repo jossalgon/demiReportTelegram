@@ -1,5 +1,5 @@
 requests
-python-telegram-bot
+python-telegram-bot==12.0.0
 ts3
 pymysql==0.9.3
 cleverwrap
