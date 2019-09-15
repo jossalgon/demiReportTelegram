@@ -27,6 +27,7 @@ nuke = 30
 perros = 20
 HEADSHOT = 7
 DUELO = 3
+APUESTAS = ['1','2','3','5']
 MUTE = 5
 MUTE_TIME = 600
 porn = True
