@@ -300,7 +300,6 @@ def pre_apuesta(bot, update):
     else:
         return ConversationHandler.END
 
-
 def check_points(bot, update, points):
     message = update.message
     user_id = message.from_user.id
