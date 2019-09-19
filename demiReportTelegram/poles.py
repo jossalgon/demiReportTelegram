@@ -289,14 +289,16 @@ def pre_duelo(bot, update):
 
 @run_async
 def pre_apuesta(bot, update):
-    message = update.message
-    numbers = ['1','3','5','10','20','100']
-    reply_keyboard = [numbers[i:i + 3] for i in range(0, len(numbers), 3)]
-    bot.send_message(message.chat_id, 'Apuesta una cantidad de puntos y ¡gana! o /cancel si no tienes huevos',
-                     reply_to_message_id=message.message_id,
-                     reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True, selective=True))
-    return 0
-
+    if check_apuestas_actuales(bot, update):
+        message = update.message
+        numbers = variables.APUESTAS
+        reply_keyboard = [numbers[i:i + 4] for i in range(0, len(numbers), 4)]
+        bot.send_message(message.chat_id, 'Apuesta una cantidad de puntos y ¡gana! o /cancel si no tienes huevos',
+                         reply_to_message_id=message.message_id,
+                         reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True, selective=True))
+        return 0
+    else:
+        return ConversationHandler.END
 
 def check_points(bot, update, points):
     message = update.message
@@ -329,9 +331,25 @@ def apuesta(bot, update, job_queue):
     user_id = message.from_user.id
     puntos_apostados = update.message.text
     con = demi_utils.create_connection()
+    if (puntos_apostados == '0'):
+        bot.send_message(message.chat_id,
+         'Te crees muy gracioso, ¿no?',
+         reply_to_message_id=message.message_id,
+         reply_markup=ReplyKeyboardRemove(selective=True))
+        return ConversationHandler.END        
+    if (puntos_apostados not in variables.APUESTAS):
+        bot.send_message(message.chat_id,
+         'Elige una opción de las disponibles.',
+         reply_to_message_id=message.message_id,
+         reply_markup=ReplyKeyboardRemove(selective=True))
+        return ConversationHandler.END
     if not check_points(bot, update, int(puntos_apostados)):
         return ConversationHandler.END
     try:
+        with con.cursor() as cur:
+            cur.execute('UPDATE Economy SET ApuestasDia = ApuestasDia - 1 WHERE UserId = %s',
+                         str(user_id))
+
         bot.send_document(message.chat_id, 'https://media.giphy.com/media/GWS8bXKxphfEI/giphy.gif', reply_to_message_id=message.message_id,
                               reply_markup=ReplyKeyboardRemove(selective=True))
         try:
@@ -374,6 +392,29 @@ def puntos_actuales(user_id, con):
                     (str(user_id)))
     return str(cur.fetchone()[0])
 
+def check_apuestas_actuales(bot, update):
+    message = update.message
+    user_id = message.from_user.id
+    con = demi_utils.create_connection()
+    try:
+        with con.cursor() as cur:
+            cur.execute('SELECT ApuestasDia FROM Economy WHERE UserId = %s', (str(user_id)));
+        apuestas_actuales = str(cur.fetchone()[0]);
+
+        if(apuestas_actuales == '0'):
+            bot.send_message(message.chat_id,
+             'No te quedan apuestas hoy.',
+             reply_to_message_id=message.message_id,
+             reply_markup=ReplyKeyboardRemove(selective=True))       
+            return False;
+        else:
+            return True;
+    except Exception:
+        logger.error('Fatal error in check_points', exc_info=True)
+        return False
+    finally:
+        if con:
+            con.close()
 
 @run_async
 def duelo(bot, update, job_queue):
@@ -655,6 +696,7 @@ def daily_reward(bot, job):
     try:
         with con.cursor() as cur:
             cur.execute('UPDATE Ranking SET Points = Points + 1')
+            cur.execute('UPDATE Economy SET ApuestasDia = 3')
     except Exception:
         logger.error('Fatal error in daily_rewards', exc_info=True)
     finally:
