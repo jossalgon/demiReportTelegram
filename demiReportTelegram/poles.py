@@ -337,12 +337,12 @@ def apuesta(bot, update, job_queue):
          reply_to_message_id=message.message_id,
          reply_markup=ReplyKeyboardRemove(selective=True))
         return ConversationHandler.END
-    if (puntos_apostados not in variables.APUESTAS):
-        bot.send_message(message.chat_id,
-         'Elige una opción de las disponibles.',
-         reply_to_message_id=message.message_id,
-         reply_markup=ReplyKeyboardRemove(selective=True))
-        return ConversationHandler.END
+    # if (puntos_apostados not in variables.APUESTAS):
+    #     bot.send_message(message.chat_id,
+    #      'Elige una opción de las disponibles.',
+    #      reply_to_message_id=message.message_id,
+    #      reply_markup=ReplyKeyboardRemove(selective=True))
+    #     return ConversationHandler.END
     if not check_points(bot, update, int(puntos_apostados)):
         return ConversationHandler.END
     try:
