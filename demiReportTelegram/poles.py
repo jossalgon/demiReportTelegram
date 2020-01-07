@@ -291,8 +291,7 @@ def pre_duelo(bot, update):
 def pre_apuesta(bot, update):
     if check_apuestas_actuales(bot, update):
         message = update.message
-        numbers = variables.APUESTAS
-        reply_keyboard = [numbers[i:i + 4] for i in range(0, len(numbers), 4)]
+        reply_keyboard = variables.APUESTAS
         bot.send_message(message.chat_id, 'Apuesta una cantidad de puntos y ¡gana! o /cancel si no tienes huevos',
                          reply_to_message_id=message.message_id,
                          reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True, selective=True))
@@ -300,7 +299,7 @@ def pre_apuesta(bot, update):
     else:
         return ConversationHandler.END
 
-def check_points(bot, update, points):
+def get_user_points(bot, update):
     message = update.message
     user_id = message.from_user.id
     con = demi_utils.create_connection()
@@ -308,20 +307,25 @@ def check_points(bot, update, points):
         with con.cursor() as cur:
             cur.execute('SELECT Points FROM Ranking WHERE UserId = %s', (str(user_id),))
             user_points = cur.fetchone()[0]
-            if user_points < points:
-                bot.send_message(message.chat_id,
-                                 'No tienes puntos suficientes, te faltan %d ptos.' % (points - user_points),
-                                 reply_to_message_id=message.message_id,
-                                 reply_markup=ReplyKeyboardRemove(selective=True))
-                return False
-            else:
-                return True
+            return user_points
     except Exception:
-        logger.error('Fatal error in check_points', exc_info=True)
-        return False
+        logger.error('Fatal error in get_points', exc_info=True)
     finally:
         if con:
             con.close()
+
+
+def check_points(bot, update, points):
+    message = update.message
+    user_points = get_user_points(bot, update)
+    if user_points and user_points < points:
+        bot.send_message(message.chat_id,
+                         'No tienes puntos suficientes, te faltan %d ptos.' % (points - user_points),
+                         reply_to_message_id=message.message_id,
+                         reply_markup=ReplyKeyboardRemove(selective=True))
+        return False
+    else:
+        return True
 
 
 @run_async
@@ -329,7 +333,8 @@ def apuesta(bot, update, job_queue):
     import random
     message = update.message
     user_id = message.from_user.id
-    puntos_apostados = update.message.text
+    query_response = update.message.text
+    puntos_apostados = query_response if query_response != 'ALL IN' else get_user_points(bot, update)
     con = demi_utils.create_connection()
     if (puntos_apostados == '0'):
         bot.send_message(message.chat_id,

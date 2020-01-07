@@ -647,7 +647,7 @@ def main():
     apuesta_handler = ConversationHandler(
         entry_points=[CommandHandlerFlood('apuesta', poles.pre_apuesta, filter_is_from_group)],
         states={
-            0: [RegexHandler('^[0-9]*$', poles.apuesta, pass_job_queue=True)],
+            0: [RegexHandler('^[0-9]*$|^(ALL IN)$', poles.apuesta, pass_job_queue=True)],
         },
 
         fallbacks=[CommandHandler('cancel', cancelApuesta), CommandHandler('mute', cancel), CommandHandler('addword', cancel)]
