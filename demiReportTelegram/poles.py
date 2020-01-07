@@ -336,7 +336,7 @@ def apuesta(bot, update, job_queue):
          'Te crees muy gracioso, ¿no?',
          reply_to_message_id=message.message_id,
          reply_markup=ReplyKeyboardRemove(selective=True))
-        return ConversationHandler.END        
+        return ConversationHandler.END
     if (puntos_apostados not in variables.APUESTAS):
         bot.send_message(message.chat_id,
          'Elige una opción de las disponibles.',
@@ -350,8 +350,9 @@ def apuesta(bot, update, job_queue):
             cur.execute('UPDATE Economy SET ApuestasDia = ApuestasDia - 1 WHERE UserId = %s',
                          str(user_id))
 
-        bot.send_document(message.chat_id, 'https://media.giphy.com/media/GWS8bXKxphfEI/giphy.gif', reply_to_message_id=message.message_id,
+        msg_apuesta1 = bot.send_document(message.chat_id, 'https://media.giphy.com/media/GWS8bXKxphfEI/giphy.gif', reply_to_message_id=message.message_id,
                               reply_markup=ReplyKeyboardRemove(selective=True))
+        job_queue.run_once(utils.remove_message_from_group, 3, context=msg_apuesta1.message_id)
         try:
             time.sleep(3)
         except TimedOut:
@@ -364,19 +365,22 @@ def apuesta(bot, update, job_queue):
                             (str(int(puntos_apostados)), str(user_id)))
                 cur.execute('UPDATE Usos SET Veces = Veces + %s WHERE UserId = %s', (str(int(puntos_apostados)), str(user_id)))
             bot.send_message(message.chat_id, '¡PIERDES ' + str(int(puntos_apostados)) + ' puntos! Puntos actuales: ' + puntos_actuales(user_id, con))
-            bot.send_document(message.chat_id, 'https://media.giphy.com/media/3o6UB5RrlQuMfZp82Y/giphy.gif')
+            msg_apuesta2 = bot.send_document(message.chat_id, 'https://media.giphy.com/media/3o6UB5RrlQuMfZp82Y/giphy.gif')
+            job_queue.run_once(utils.remove_message_from_group, 30, context=msg_apuesta2.message_id)
         if 50 <= lucky < 99:
             with con.cursor() as cur:
                 cur.execute('UPDATE Ranking SET Points = Points + %s WHERE UserId = %s',
                             (str(int(puntos_apostados)), str(user_id)))
             bot.send_message(message.chat_id, '¡GANAS ' + str(int(puntos_apostados)) + ' puntos! Puntos actuales: ' + puntos_actuales(user_id, con))
-            bot.send_document(message.chat_id, 'https://media.giphy.com/media/pPzjpxJXa0pna/giphy.gif')
+            msg_apuesta2 = bot.send_document(message.chat_id, 'https://media.giphy.com/media/pPzjpxJXa0pna/giphy.gif')
+            job_queue.run_once(utils.remove_message_from_group, 30, context=msg_apuesta2.message_id)
         elif lucky == 99:
             with con.cursor() as cur:
                 cur.execute('UPDATE Ranking SET Points = Points + %s WHERE UserId = %s',
                             (str(int(puntos_apostados)*13), str(user_id)))
             bot.send_message(message.chat_id, 'GG EZ +' + str(int(puntos_apostados)*13) + ' puntos! Puntos actuales: ' + puntos_actuales(user_id, con))
-            bot.send_document(message.chat_id, 'https://media.giphy.com/media/hv4TC2Ide8rDoXy0iK/giphy.gif')
+            msg_apuesta2 = bot.send_document(message.chat_id, 'https://media.giphy.com/media/hv4TC2Ide8rDoXy0iK/giphy.gif')
+            job_queue.run_once(utils.remove_message_from_group, 30, context=msg_apuesta2.message_id)
     except Exception:
         logger.error('Fatal error in apuesta', exc_info=True)
     finally:
@@ -405,7 +409,7 @@ def check_apuestas_actuales(bot, update):
             bot.send_message(message.chat_id,
              'No te quedan apuestas hoy.',
              reply_to_message_id=message.message_id,
-             reply_markup=ReplyKeyboardRemove(selective=True))       
+             reply_markup=ReplyKeyboardRemove(selective=True))
             return False;
         else:
             return True;
