@@ -289,7 +289,7 @@ def pre_duelo(bot, update):
 
 @run_async
 def pre_apuesta(bot, update):
-    if check_apuestas_actuales(bot, update):
+    if check_points(bot, update) and check_apuestas_actuales(bot, update):
         message = update.message
         reply_keyboard = variables.APUESTAS
         bot.send_message(message.chat_id, 'Apuesta una cantidad de puntos y ¡gana! o /cancel si no tienes huevos',
@@ -315,10 +315,16 @@ def get_user_points(bot, update):
             con.close()
 
 
-def check_points(bot, update, points):
+def check_points(bot, update, points=None):
     message = update.message
     user_points = get_user_points(bot, update)
-    if user_points and user_points < points:
+    if not points and user_points <= 0:
+        bot.send_message(message.chat_id,
+                         'No tienes puntos suficientes.',
+                         reply_to_message_id=message.message_id,
+                         reply_markup=ReplyKeyboardRemove(selective=True))
+        return False
+    elif points is not None and user_points < points:
         bot.send_message(message.chat_id,
                          'No tienes puntos suficientes, te faltan %d ptos.' % (points - user_points),
                          reply_to_message_id=message.message_id,
