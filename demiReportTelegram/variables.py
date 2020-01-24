@@ -23,6 +23,7 @@ minecraft_ip = config['APIS']['minecraft_ip']
 pushover_token = config['APIS']['pushover_token']
 pushover_client = config['APIS']['pushover_client']
 
+reports = 3
 nuke = 30
 perros = 20
 HEADSHOT = 7

@@ -11,7 +11,7 @@ import pkgutil
 import pushover
 import pymysql
 
-from reportTelegram import reportBot, utils, reports
+from reportTelegram import reportBot, utils, reports, admin
 from reportTelegram import variables as report_variables
 from telegram import MessageEntity, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, RegexHandler, InlineQueryHandler, \
@@ -482,7 +482,7 @@ def pole_timer(job_queue):
     secs2 = delta_t2.seconds + 1
     job_queue.run_daily(callback=demi_utils.pole_counter, time=secs)
     job_queue.run_daily(callback=poles.run_daily_perros, time=secs-20)
-    job_queue.run_daily(callback=poles.daily_reward, time=secs+60)
+    # job_queue.run_daily(callback=poles.daily_reward, time=secs+60)
     job_queue.run_daily(callback=variables.clean_poles, time=secs2)
     job_queue.run_repeating(callback=login_account, interval=datetime.timedelta(days=30), first=5)
 
@@ -540,6 +540,7 @@ def main():
     updater = Updater(token=TG_TOKEN, workers=32)
     dp = updater.dispatcher
     report_variables.user_data_dict = dp.user_data
+    admin.set_num_reports_by_bot(int(variables.reports))
     pushover.init(variables.pushover_token)
 
     wanted_words.extend(demi_utils.get_all_words())
@@ -644,15 +645,15 @@ def main():
     )
     dp.add_handler(duelo_handler)
 
-    apuesta_handler = ConversationHandler(
-        entry_points=[CommandHandlerFlood('apuesta', poles.pre_apuesta, filter_is_from_group)],
-        states={
-            0: [RegexHandler('^[0-9]*$|^(ALL IN)$', poles.apuesta, pass_job_queue=True)],
-        },
-
-        fallbacks=[CommandHandler('cancel', cancelApuesta), CommandHandler('mute', cancel), CommandHandler('addword', cancel)]
-    )
-    dp.add_handler(apuesta_handler)
+    # apuesta_handler = ConversationHandler(
+    #     entry_points=[CommandHandlerFlood('apuesta', poles.pre_apuesta, filter_is_from_group)],
+    #     states={
+    #         0: [RegexHandler('^[0-9]*$|^(ALL IN)$', poles.apuesta, pass_job_queue=True)],
+    #     },
+    #
+    #     fallbacks=[CommandHandler('cancel', cancelApuesta), CommandHandler('mute', cancel), CommandHandler('addword', cancel)]
+    # )
+    # dp.add_handler(apuesta_handler)
 
     mute_handler = ConversationHandler(
         entry_points=[CommandHandlerFlood('mute', poles.pre_mute, filter_is_from_group)],
@@ -672,8 +673,7 @@ def main():
         },
 
         fallbacks=[CommandHandler('cancel', cancel), CommandHandler('done', done),
-                   CommandHandler('headshot', cancel), CommandHandler('mute', cancel), CommandHandler('duelo', cancelDuelo),
-                   CommandHandler('apuesta', cancelApuesta)]
+                   CommandHandler('headshot', cancel), CommandHandler('mute', cancel), CommandHandler('duelo', cancelDuelo)]
     )
     dp.add_handler(wanted_word_handler)
     dp.add_handler(MessageHandler(filter_wanted_words, send_wanted_word))
