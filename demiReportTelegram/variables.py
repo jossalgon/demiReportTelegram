@@ -11,6 +11,7 @@ api_token = config['Telegram']['token']
 link = config['Telegram']['link']
 EXTERNAL_HOST = config['Telegram']['EXTERNAL_HOST']
 group_id = int(config['Telegram']['group_id'])
+group_id2 = int(config['Telegram']['group_id2'])
 admin_id = int(config['Telegram']['admin_id'])
 
 DB_HOST = config['Database']['DB_HOST']

@@ -52,7 +52,7 @@ def set_troll(target):
 def mention_handler(bot, message):
     usernames = demi_utils.get_usernames(bot)
     mentions = [mention.lower() for mention in re.findall(r'@\w+', message.text)]
-    user_ids = demi_utils.get_user_ids()
+    user_ids = demi_utils.get_user_ids(is_pipas=True)
     silent_todos = demi_utils.get_not_mention('TODOS')
     silent_menciones = demi_utils.get_not_mention('MENCIONES')
     silent_pipas = demi_utils.get_not_mention('PIPAS')
@@ -60,7 +60,7 @@ def mention_handler(bot, message):
     if message.from_user.id in demi_utils.get_trolls():
         return False
 
-    for user_id in demi_utils.get_user_ids():
+    for user_id in user_ids:
         username = '@' + bot.get_chat_member(group_id, user_id).user.username.lower()
         if username in mentions and user_id not in silent_menciones:
             bot.forward_message(user_id, group_id, message.message_id)
@@ -120,10 +120,10 @@ def pipas_selected(bot, update, user_data, job_queue):
     bot.edit_message_reply_markup(reply_markup=reply_markup, chat_id=query.message.chat_id,
                                   message_id=query.message.message_id)
     if query_selected == 0:
-        bot.send_message(group_id, '¡%s sale!' % utils.get_name(user_id),
+        bot.send_message(group_id, '¡%s sale!' % demi_utils.get_name(user_id),
                          reply_to_message_id=demi_utils.get_event_message_id(event_id))
     elif query_selected == 1 and demi_utils.get_vote(event_id, user_id) == 0:
-        bot.send_message(group_id, '¡%s hace achu achu!' % utils.get_name(user_id),
+        bot.send_message(group_id, '¡%s hace achu achu!' % demi_utils.get_name(user_id),
                          reply_to_message_id=demi_utils.get_event_message_id(event_id))
 
     demi_utils.add_participant_event(event_id, user_id, query_selected)

@@ -25,6 +25,7 @@ from demiReportTelegram import utils as demi_utils
 
 admin_id = variables.admin_id
 group_id = variables.group_id
+group_id2 = variables.group_id2
 photo_ok = True
 
 config = configparser.ConfigParser()
@@ -97,7 +98,7 @@ def set_troll(bot, update, args):
 
 def mention_handler(bot, update):
     message = update.message
-    if message.chat_id == group_id and message.from_user.id not in demi_utils.get_trolls():
+    if message.chat_id in [group_id, group_id2] and message.from_user.id not in demi_utils.get_trolls():
         mentions.mention_handler(bot, message)
 
 
@@ -464,6 +465,10 @@ def filter_is_from_group(msg):
     return utils.is_from_group(msg.from_user.id)
 
 
+def filter_is_from_pipas_group(msg):
+    return demi_utils.is_from_pipas_group(msg.from_user.id)
+
+
 def not_forwarded(msg):
     return not bool(msg.forward_date)
 
@@ -605,9 +610,9 @@ def main():
     dp.add_handler(CommandHandler('gett', gett, Filters.user(user_id=admin_id), pass_job_queue=True))
     dp.add_handler(CallbackQueryHandler(callback_query_handler, pass_user_data=True, pass_job_queue=True,
                                         pass_chat_data=True))
-    dp.add_handler(CommandHandlerFlood('pipas', mentions.who_pipas, filter_is_from_group))
-    dp.add_handler(CommandHandlerFlood('repipas', mentions.recover_pipas, filter_is_from_group))
-    dp.add_handler(CommandHandlerFlood('mention', mentions.mention_control, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('pipas', mentions.who_pipas, filter_is_from_pipas_group))
+    dp.add_handler(CommandHandlerFlood('repipas', mentions.recover_pipas, filter_is_from_pipas_group))
+    dp.add_handler(CommandHandlerFlood('mention', mentions.mention_control, filter_is_from_pipas_group))
     dp.add_handler(CommandHandlerFlood('minecraft', demi_utils.send_who_minecraft, filter_is_from_group))
     dp.add_handler(CommandHandler('words', manage_wanted_word))
 

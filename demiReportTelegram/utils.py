@@ -30,21 +30,39 @@ def create_connection():
     return pymysql.connect(host=DB_HOST, user=DB_USER, password=DB_PASS, database=DB_NAME)
 
 
-def get_user_ids():
+def get_user_ids(is_pipas=False):
     user_ids = []
     con = create_connection()
     try:
         with con.cursor() as cur:
-            cur.execute('SELECT UserId FROM Users')
+            if is_pipas:
+                cur.execute('SELECT UserId FROM PipasUsers')
+            else:
+                cur.execute('SELECT UserId FROM Users')
             rows = cur.fetchall()
             for row in rows:
                 user_ids.append(row[0])
+    except Exception:
+        logger.error('Fatal error in get_user_ids', exc_info=True)
+    finally:
+        if con:
+            con.close()
+        return user_ids
+
+
+def is_from_pipas_group(user_id):
+    result = False
+    con = create_connection()
+    try:
+        with con.cursor() as cur:
+            cur.execute('SELECT EXISTS(SELECT 1 FROM PipasUsers WHERE UserId = %s)', (str(user_id),))
+            result = bool(cur.fetchone()[0])
     except Exception:
         logger.error('Fatal error in is_from_group', exc_info=True)
     finally:
         if con:
             con.close()
-        return user_ids
+        return result
 
 
 def get_user_name(id):
@@ -52,7 +70,7 @@ def get_user_name(id):
     con = create_connection()
     try:
         with con.cursor() as cur:
-            cur.execute('SELECT Name FROM Users Where UserId=%s' % id)
+            cur.execute('SELECT Name FROM PipasUsers Where UserId=%s' % id)
             rows = cur.fetchall()
             for row in rows:
                 user_name.append(row[0])
@@ -169,6 +187,22 @@ def get_vote(event_id, user_id):
         return res
 
 
+def get_name(user_id):
+    username = 'Anon'
+    con = create_connection()
+    try:
+        with con.cursor() as cur:
+            cur.execute('SELECT Name FROM PipasUsers WHERE UserId = %s', (str(user_id),))
+            if cur.rowcount:
+                username = cur.fetchone()[0]
+    except Exception:
+        logger.error('Fatal error in get_name', exc_info=True)
+    finally:
+        if con:
+            con.close()
+        return username
+
+
 def get_participants_event(event_id):
     con = create_connection()
     user_ids = [[], [], []]
@@ -178,9 +212,9 @@ def get_participants_event(event_id):
             rows = cur.fetchall()
             for row in rows:
                 if row[1] == 0:
-                    user_ids[0].append(report_utils.get_name(row[0]))
+                    user_ids[0].append(get_name(row[0]))
                 if row[1] == 1:
-                    user_ids[1].append(report_utils.get_name(row[0]))
+                    user_ids[1].append(get_name(row[0]))
     except Exception as exception:
         print(exception)
     finally:
@@ -471,6 +505,10 @@ def create_database():
                   `selected` int(11) NOT NULL, \
                   UNIQUE KEY (eventId, userId), \
                   FOREIGN KEY (eventId) REFERENCES Pipas(eventId) \
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; \
+                CREATE TABLE IF NOT EXISTS `PipasUsers` ( \
+                  `UserId` int(11) NOT NULL, \
+                  `Name` text NOT NULL \
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; \
                 ")
     except Exception as exception:
