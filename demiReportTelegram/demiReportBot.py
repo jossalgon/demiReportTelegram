@@ -601,6 +601,7 @@ def main():
     dp.add_handler(CommandHandlerFlood('callate', general.send_callate, filter_is_from_group))
     dp.add_handler(CommandHandlerFlood('disculpa', general.send_disculpa, filter_is_from_group))
     dp.add_handler(CommandHandlerFlood('locura', general.send_locura, filter_is_from_group))
+    dp.add_handler(CommandHandlerFlood('esverdad', general.send_esverdad_audio, filter_is_from_group))
     dp.add_handler(CommandHandlerFlood('mecagoenlamadrequemepario', general.send_gritopokemon, filter_is_from_group))
     dp.add_handler(CommandHandlerFlood('hijodecuatrocientossetenta',
                                        general.send_futbol_audio, filter_is_from_group))
