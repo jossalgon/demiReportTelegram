@@ -4,5 +4,5 @@ ts3
 pymysql==0.9.3
 cleverwrap
 reportTelegram
-mcstatus
+mcstatus==4.1.0
 python-pushover
